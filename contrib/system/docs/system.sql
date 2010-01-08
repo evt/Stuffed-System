@@ -1,3 +1,5 @@
+# I made a small change here to test the GIT commit and push systems
+
 DROP TABLE IF EXISTS `ss_system_cache`;
 
 CREATE TABLE `ss_system_cache` (
