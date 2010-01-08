@@ -1,0 +1,9 @@
+# Event: pkg_start
+
+# Event is called right after the system package finished initializing (for 
+# example, just before the call to $system->pkg('system') is returned to the 
+# caller).
+
+# This event exists in all packages, but due to the special nature of
+# the system package, the event in the system package can be considered a
+# global 'system start' event as well.

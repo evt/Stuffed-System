@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>Stuffed System <%$ss_version %> &copy; Stuffed Guys</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			text-align: center;
+			background-color: #fff;
+		}
+
+		body, td, input, textarea, select {
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 12px;
+		}
+
+		h1 {
+			font-size: 24px;
+			padding: 10px;
+			border-bottom: 1px dotted #ccc;
+		}
+
+		p {
+			padding-left: 10px;
+			line-height: 1.8em;
+		}
+		
+		.wrapper {
+			text-align: left;
+			margin: auto;
+			width: 800px;
+			padding-top: 20px;
+		}
+
+		.ascii {
+			float: right;
+			font-size: 10px;
+			padding-left: 10px;
+		}
+		
+		.content {}
+		
+		.footer {
+			border-top: 1px dotted #ccc;
+			padding-top: 10px;
+			clear: both;
+		}
+	</style>
+</head>
+<body>
+	<div class="wrapper">
+
+		<h1>Stuffed System <%$ss_version %></h1>
+		
+		<pre class="ascii">
+                    ___
+                ,yQ$SSS$Q',      ,'yQQQL
+              j$$"`     `?$'  ,d$P"```'$$,
+       i_L   I$;            `$``       `$$,
+                             `          I$$
+       .:yQ$$$$,            ;        _,d$$'
+    ,d$$P"^```?$b,       _,'  ;  ,:d$$P"
+ ,d$P"`        `"?$$Q#QPw`    $d$$P"`
+,$$"         ;       ``       ;$?'
+$$;        ,dI                I$;
+`$$,    ,d$$$`               j$I
+ ?$S#S$P'j$'                $$;
+   `"`  j$'  __....,,,.__  j$I
+       j$$'"``           ',$$
+       I$;               ,$$'
+       `$$,         _.:u$$:`
+         "?$$Q##Q$$SP$"^`
+            `````
+		</pre>
+		
+		<div class="content">
+			<p>
+				Stuffed System is an advanced framework for web based
+				applications written in Perl. It uses both object oriented and functional
+				code, depending on the situation, and doesn't limit developers to only one
+				of these approaches.
+			</p>
+			<p>
+				The fact that you see this message means that this particular web
+				application is making use of the great Stuffed System features, including
+				skins support, templates compilation for faster processing,
+				plugins, built-in internationalization, full mod_perl compatibility. If you
+				are interested in using Stuffed System in your own applications please 
+				contact <a href="http://www.stuffedguys.org" target="_blank">Stuffed Guys</a>
+				for further details.
+			</p>
+			<p>
+				This version of Stuffed System is fully optimized to work with utf8 encoding
+				in Perl.
+			</p>
+			<p>
+				Мы говорим по-русски!
+			</p>
+		</div>
+		
+		<p class="footer">
+			Copyright &copy; 2002-<%import time_now from system %><%$time_now.year%> <a href="http://www.stuffedguys.com" target="_blank">Stuffed Guys</a>
+		</p>
+		
+	</div>
+</body>
+</html>

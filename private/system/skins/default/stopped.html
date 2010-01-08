@@ -1,0 +1,46 @@
+<html>
+<head>
+	<title>Maintenance period</title>
+	<style>
+		body {
+			background-color: #fff;
+		}
+		
+		body, td, input, textarea, select {
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 14px;
+		}
+		
+		h1 {
+			border-bottom: 1px solid #ddd;
+		}
+	</style>
+	<%if $url %>
+		<meta http-equiv="refresh" content="5; url=<%$url%>">
+	<%/if %>
+</head>
+<body>
+	<table border="0" cellpadding="0" cellspacing="0" width="600" height="100%" align="center">
+		<tr>
+			<td align="center">
+				<h1>Maintenance period</h1>
+				<p>
+					We had to temporarily stop our service for quick maintenance.
+				</p>
+				<p>
+					The maintenance should take only a couple of minutes.<%if $url %>
+					If you will keep this page open in your browser, it will automatically refresh 
+					when the maintenance will be complete and you will be able to continue working 
+					with our site from the point where you were interrupted.<%/if %>
+				</p>
+				<p>
+					We're sorry for the inconvenience.
+				</p>
+				<p style="color: #ccc;">
+					( <a href="javascript:window.location.reload()">Refresh the page manually</a> )
+				</p>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

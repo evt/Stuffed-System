@@ -1,0 +1,7 @@
+# Event: system_stop
+
+# This event is called at the beginning of the $system->stop method, just when
+# the system starts to finish. All usual system variables, modules, methods and
+# a database connection (if it was opened) should be still live and accessible.
+
+# system:debug_db
