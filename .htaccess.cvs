@@ -1,8 +1,3 @@
-# forbid access to the Root file in all CVS directories from web
-<Files "Root">
-  Deny from all
-</Files>
-
 Options ExecCGI Includes FollowSymLinks
 DirectoryIndex index.cgi
 
@@ -29,13 +24,6 @@ AddHandler cgi-script .cgi .pl
   # show standard server's 404 error for these files instead of routing them through Stuffed System
   RewriteRule ^(robots.txt|favicon.ico)$  /public/$1 [L,QSA]
   
-  # clubs
-  RewriteRule ^clubs/[^/]+/(\d+)/([^/]+)/?$  index.cgi?__pkg=idefit&__act=clubs&__sub=$2&id=$1 [L,QSA]
-  # cards
-  RewriteRule ^cards/[^/]+/(\d+)/([^/]+)/?$  index.cgi?__pkg=idefit&__act=cards&__sub=$2&id=$1 [L,QSA]
-  # person
-  RewriteRule ^person/([^/]+)/?$  index.cgi?__pkg=idefit&__act=person&username=$1 [L,QSA]
-
   # standard stuffed system 4 rewrite rules, only system and default package;
   # package name should always be followed by an action name, even if it is
   # "index", just "/pkg/" in the URL would be treated as an action of the
@@ -50,13 +38,4 @@ AddHandler cgi-script .cgi .pl
   RewriteRule ^([^/]+)/([^/]+)\.html$  index.cgi?__pkg=idefit&__act=$1&__sub=$2 [L,QSA]
   RewriteRule ^([^/]+)/([^/]+)/?$  index.cgi?__pkg=idefit:$1&__act=$2 [L,QSA]
   RewriteRule ^([^/]+)/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=idefit:$1&__act=$2&__sub=$3 [L,QSA]
-    
-  # standard stuffed system 3 rewrite rules, 3 levels deep packages maximum
-#  RewriteRule ^([^/]+)\.html?$  index.cgi?__act=$1 [L,QSA]
-#  RewriteRule ^([^/]+)/?$  index.cgi?__pkg=$1 [L,QSA]
-#  RewriteRule ^([^/]+)/([^/]+)\.html$  index.cgi?__pkg=$1&__act=$2 [L,QSA]
-#  RewriteRule ^([^/]+)/([^/]+)/?$  index.cgi?__pkg=$1:$2 [L,QSA]
-#  RewriteRule ^([^/]+)/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=$1:$2&__act=$3 [L,QSA]
-#  RewriteRule ^([^/]+)/([^/]+)/([^/]+)/?$  index.cgi?__pkg=$1:$2:$3 [L,QSA]
-#  RewriteRule ^([^/]+)/([^/]+)/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=$1:$2:$3&__act=$3 [L,QSA]
 </IfModule>
