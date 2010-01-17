@@ -85,7 +85,7 @@ sub return_js {
 sub return_json {
 	my $hash = shift;
 
-	$system->out->header('Content-Type' => 'application/x-javascript');
+	$system->out->header('Content-Type' => 'application/json');
 
 	require Stuffed::System::Utils;
 
