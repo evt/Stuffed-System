@@ -50,8 +50,8 @@ use strict;
 use vars qw($AUTOLOAD);
 use Stuffed::System;
 
-my $tag_start = '<(?:%|\?=?)';
-my $tag_end = '(?:%|\?)>';
+my $tag_start = '<%';
+my $tag_end = '%>';
 
 sub new {
 	my $self = bless({}, shift);
