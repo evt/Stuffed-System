@@ -34,10 +34,15 @@ $defs->{stash} = {
 
 sub stash {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
 
-	my $var = $self->{params}[0];
-	my $tail = $self->{params}[1];
+	my $var = $params->[0];
+	my $tail = $params->[1];
 	my $parsed_var = $self->{template}->compile(
 		template	=> $var,
 		tag_start	=> '<',

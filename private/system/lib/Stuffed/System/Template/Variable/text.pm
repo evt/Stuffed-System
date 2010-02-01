@@ -35,9 +35,14 @@ $defs->{text} = {
 
 sub text {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
 
-	my ($text_file, $var) = @{$self->{params}};
+	my ($text_file, $var) = @$params;
 	$text_file =~ s|\.|/|g if true($text_file);
 
 	my $text_prefix = '$s->{text}';

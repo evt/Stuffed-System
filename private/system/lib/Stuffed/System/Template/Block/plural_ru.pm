@@ -33,13 +33,19 @@ $defs->{plural_ru} = {
 
 sub plural_ru {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_
+	};
 	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return if not $params;
 
-	my $number = $t->compile(template => $self->{params}[0], tag_start => '', tag_end => '', raw => 1);
-	my $zero = $t->compile(template => $self->{params}[1], tag_start => '<', tag_end => '>', raw => 1); 
-	my $one = $t->compile(template => $self->{params}[2], tag_start => '<', tag_end => '>', raw => 1);
-	my $two = $t->compile(template => $self->{params}[3], tag_start => '<', tag_end => '>', raw => 1);
+	my $number = $t->compile(template => $params->[0], tag_start => '', tag_end => '', raw => 1);
+	my $zero = $t->compile(template => $params->[1], tag_start => '<', tag_end => '>', raw => 1); 
+	my $one = $t->compile(template => $params->[2], tag_start => '<', tag_end => '>', raw => 1);
+	my $two = $t->compile(template => $params->[3], tag_start => '<', tag_end => '>', raw => 1);
 
 	$t->add_to_top("require Stuffed::System::Utils; Stuffed::System::Utils->import('&plural_ru');");
 	my $final = "plural_ru($number, $zero, $one, $two)";

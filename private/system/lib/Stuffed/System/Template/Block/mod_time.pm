@@ -33,8 +33,14 @@ $defs->{mod_time} = {
 };
 
 sub mod_time {
-	my ($self, $content) = @_;
+	my $self = shift;
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_	
+	};
 	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
 
 	my $final = $t->compile(template => $content, raw => 1);
 

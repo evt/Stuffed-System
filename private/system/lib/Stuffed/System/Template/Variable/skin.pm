@@ -34,11 +34,16 @@ $defs->{skin} = {
 
 sub skin {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
 
 	my $t = $self->{template};
 	my $skin = $t->{skin}->id;
-	my ($pkg, $var) = @{$self->{params}};
+	my ($pkg, $var) = @$params;
 	$pkg =~ s/\./:/g if true($pkg);
 
 	my $res_line;

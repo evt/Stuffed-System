@@ -35,18 +35,23 @@ $defs->{var} = {
 my $not_complex;
 
 sub var {
-	my ($self, $final) = (shift, undef);
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-
+	my $self = shift;
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_
+	};
 	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return if not $params;
 
-	while (@{$self->{params}}) {
-		my ($var, $params) = splice @{$self->{params}}, 0, 2;
+	while (@$params) {
+		my ($var, $parameters) = splice @$params, 0, 2;
 
 		my $mods = [];
 
-		if ($params) {
-			push @$mods, {type => $1, param => $2} while $params =~ /([^=\s]+)="([^"]+)"/g;
+		if ($parameters) {
+			push @$mods, {type => $1, param => $2} while $parameters =~ /([^=\s]+)="([^"]+)"/g;
 		}
 
 		my ($parsed, $complex);
@@ -143,17 +148,17 @@ sub var {
 
 			$parsed = $_->handle($parsed) for @after_encode_html;
 						
-			if ($params and $params =~ /^or(?:\s+(["'])([^\1]+)\1)?/) {
-				$final .= "true($parsed) ? $parsed : ";
-				$final .= Stuffed::System::Utils::quote($2) if defined $2;
+			if ($parameters and $parameters =~ /^or(?:\s+(["'])([^\1]+)\1)?/) {
+				$content .= "true($parsed) ? $parsed : ";
+				$content .= Stuffed::System::Utils::quote($2) if defined $2;
 			} else {
-				$final .= $parsed;
+				$content .= $parsed;
 			}
 		}
 	}
 
-	if (true($final)) {
-		$self->{raw} ? $t->add_to_raw($final) : $t->add_to_compiled("push \@p,$final;");
+	if (true($content)) {
+		$self->{raw} ? $t->add_to_raw($content) : $t->add_to_compiled("push \@p,$content;");
 	}
 }
 

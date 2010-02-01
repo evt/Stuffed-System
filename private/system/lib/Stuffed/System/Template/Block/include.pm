@@ -41,19 +41,26 @@ $defs->{include} = {
 
 sub include {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_
+	};
 	my $t = $self->{template};
-	my $pkg = $self->{params}[1];
-	my $skin_id = $self->{params}[2];
-	my $options_strings = $self->{params}[3];
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return if not $params;
+
+	my $pkg = $params->[1];
+	my $skin_id = $params->[2];
+	my $options_strings = $params->[3];
 
 	my ($string, $all_flags_string, $quote_single_quotes, $tmpl_part);
 
 	my $file;
-	if ($self->{params}[0] =~ "=" and false($options_strings)) {
-		$options_strings = $self->{params}[0];
+	if ($params->[0] =~ "=") {
+		$options_strings = $params->[0];
 	} else {
-		$file = $t->compile(template => $self->{params}[0], tag_start => '<', tag_end => '>', raw => 1);
+		$file = $t->compile(template => $params->[0], tag_start => '<', tag_end => '>', raw => 1);
 	}
 
 	if ($options_strings) {

@@ -33,10 +33,17 @@ $defs->{import} = {
 
 sub import {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-	my ($data_name, $pkg, $as, $query) = @{$self->{params}};
-
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_	
+	};
 	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return undef if not $params;
+
+	my ($data_name, $pkg, $as, $query) = @$params;
+
 	$pkg ||= $t->{pkg}->__name;
 
 	$t->add_to_top("require Stuffed::System::Template::Data;");

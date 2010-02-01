@@ -23,9 +23,10 @@
 
 package Stuffed::System::Template;
 
-$VERSION = '1.33';
+$VERSION = '1.34';
 
 # History:
+# 1.34 -- added support for intermediary units in blocks (primarily to support else and elsif in if blocks)
 # 1.33 -- added strip_tabs and strip_new_lines options
 # 1.32 -- renamed "$query." complex variable to "$q."
 # 1.31 -- vars handler now forces encode_html wrapper on all vars unless decode_html modifier is specified
@@ -329,9 +330,6 @@ sub check_compiled {
 	}
 	my $cgi_file = "$path/$filename.cgi";
 	return ($cgi_file, undef) if not -e $cgi_file;
-
-	# recompile if so was requested in parameters
-	return $cgi_file, 0 if $system->in->query('__recompile_template');
 
 	my $cgi_modtime = (stat($cgi_file))[9];
 	my $tmpl_modtime = (stat($file))[9];

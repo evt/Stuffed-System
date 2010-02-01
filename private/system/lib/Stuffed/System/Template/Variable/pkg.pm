@@ -32,10 +32,15 @@ $defs->{pkg} = {
 
 sub pkg {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
 
 	my $t = $self->{template};
-	my ($pkg, $var) = @{$self->{params}};
+	my ($pkg, $var) = @$params;
 	$pkg =~ s/\./:/g if true($pkg);
 
 	if (true($pkg) and $pkg ne $t->{pkg}->__name) {

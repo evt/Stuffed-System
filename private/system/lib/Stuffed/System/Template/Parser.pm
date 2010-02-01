@@ -63,11 +63,15 @@ sub compile {
 	# either greedy or non-greedy condition
 	my $regexp = true($tag_start) ? qr/.+?/ : qr/.+/;
 
+# ============================================================================
+
 	CYCLE: while ($template =~ /$tag_start\s*($regexp)\s*$tag_end/sg) {
-		my ($before, $string, $after, $current) = ($`, $1, $', undef);
+		my ($before, $string, $after) = ($`, $1, $');
 		my ($symbol, $type, $exp) = $string =~ /$condition/;
 
-		# found variable
+# ============================================================================
+# found variable
+
 		if ($symbol and $symbol eq '$') {
 			# if at least one block is opened -- re-iterate
 			next CYCLE if $opened;
@@ -75,20 +79,29 @@ sub compile {
 			my $exp = '$'.$type.(defined $exp ? ' '.$exp : '');
 			$self->block(type => 'plain', raw => $raw)->handle($before) if true($before);
 			$self->block(type => 'var', exp => $exp, raw => $raw)->handle;
+			
 			$template = $after;
 		}
 
-		# found the end of the block
+# ============================================================================
+# found the end of the block
+
 		elsif ($symbol and $symbol eq '/') {
-			# if some block is opened and its type is not equal to the current
-			# block type -- re-iterate
+			# if some block is opened and its type is not equal to the current block type -- re-iterate
 			next CYCLE if $opened and $opened->{type} ne $type;
 			
 			$opened->{count}--;
 
 			# handle the block
 			if ($opened->{count} == 0) {
-				$opened->{block}->handle($before);
+				# this block expects intermediary units
+				if ($opened->{block}->intermediary) {
+					$opened->{units}[-1]{content} = $before;
+					$opened->{block}->handle($opened->{units});
+				} else {
+					$opened->{block}->handle($before);	
+				}
+
 				$opened = undef;
 
 				# removed one new line if the block end tag is the only one on line
@@ -100,17 +113,47 @@ sub compile {
 			}
 		}
 
-		# found the beginning of the block
+# ============================================================================
+# found the beginning of the block
+
 		elsif (not defined $symbol and true($type)) {
-			# if some block is opened and its type is not equal to the current
-			# block type -- re-iterate
-			next CYCLE if $opened and $opened->{type} ne $type;
+			# if a block is opened and its type is not equal to the current block type -- re-iterate
+			if ($opened and $opened->{type} ne $type) {
+
+				# first checking if this is maybe an intermediary unit of the currently opened block,
+				# but only do the check if there is no other blocks opened currently of the same type as
+				# the main opened block, ie. this can really be an intermediary unit of the currently opened 
+				# block
+				if ($opened->{count} == 1) {
+					my $pattern = $opened->{block}->intermediary($type);
+					if ($pattern) {
+						$opened->{units}[-1]{content} = $before;
+						push @{$opened->{units}}, {
+							type	=> $type,
+							pattern	=> $pattern,
+							exp		=> $exp,
+						};
+						$template = $after;
+					}
+				}
+				
+				next CYCLE;
+			}
 
 			# initiate a new block
 			if (not $opened) {
 				$self->block(type => 'plain', raw => $raw)->handle($before) if true($before);
 				$opened->{block} = $self->block(type => $type, exp => $exp, raw => $raw);
-
+				
+				# this block expects intermediary units
+				if ($opened->{block}->intermediary) {
+					$opened->{units} = [{
+						pattern	=> $opened->{block}{pattern},
+						type	=> $type,
+						exp		=> $exp,	
+					}];
+				}
+				
 				# remove one new line if the block start tag is the only one on line
 				if ((false($before) or $before =~ /\015\012?|\015?\012$/) and $after =~ /^\015\012?|\015?\012/) {
 					$after =~ s/^\015?\012?//;
@@ -126,10 +169,13 @@ sub compile {
 				$template = $after;
 				next CYCLE;
 			}
+			
 			$opened->{type} = $type;
 			$opened->{count}++;
 		}
 	}
+	
+# ============================================================================
 
 	$self->block(type => 'plain', raw => $raw)->handle($template) if true($template);
 	$self->{compiled_stack}[0] = join('.', @{$self->{compiled_raw}[0]}) if $raw and @{$self->{compiled_raw}[0]};
@@ -193,38 +239,74 @@ use Stuffed::System;
 
 sub new {
 	my ($pkg, $in) = (shift, {
-			template => undef, # template object (required)
-			type     => undef, # type of block to load (required)
-			exp      => undef, # block exp that was found (optional)
-			raw      => undef, # a request to return raw code to the caller (optional)
-			@_
-		});
-	return if not $in->{template} or false($in->{type});
-	my $self = bless($in, $pkg);
+		template => undef, # template object (required)
+		type     => undef, # type of block to load (required)
+		exp      => undef, # block exp that was found (optional)
+		raw      => undef, # a request to return raw code to the caller (optional)
+		@_
+	});
 	my $t = $in->{template};
+	my $type = $in->{type};
+	return if not $t or false($type);
+	
+	my $self = bless($in, $pkg);
 
-	if (not $defs->{$in->{type}}) {
+	if (not $defs->{$type}) {
 		#    no warnings 'all';
-		eval "local \$SIG{__WARN__}; require Stuffed::System::Template::Block::$in->{type}";
-		if (not $defs->{$in->{type}} or not $defs->{$in->{type}}{handler}) {
+		eval "local \$SIG{__WARN__}; require Stuffed::System::Template::Block::$type";
+		if (not $defs->{$type} or not $defs->{$type}{handler}) {
 			my $eval_error = $@;
-			my $error = qq(Handler for the block "$in->{type}" is unavailable in package ").$t->{pkg}->__name.qq(", skin ").$t->{skin}->id.qq(", template "$t->{tmplname}".);
+			my $error = qq(Handler for the block "$type" is unavailable in package ").$t->{pkg}->__name.qq(", skin ").$t->{skin}->id.qq(", template "$t->{tmplname}".);
 			$error .= "\n$eval_error" if true($eval_error);
 			die $error;
 		}
 	}
-	$self->{$_} = $defs->{$in->{type}}{$_} for keys %{$defs->{$in->{type}}};
+	
+	$self->{$_} = $defs->{$type}{$_} for keys %{ $defs->{$type} };
+	
 	return $self;
 }
 
 sub single { shift->{single} }
 
+sub intermediary {
+	my ($self, $type) = @_;
+	return undef if not $self->{intermediary};
+	return true($type) ? $self->{intermediary}{$type} : $self->{intermediary};
+}
+
 sub handle {
-	my $self = shift;
-	if (true($self->{pattern}) and true($self->{exp})) {
-		@{$self->{params}} = $self->{exp} =~ /$self->{pattern}/g;
+	my ($self, $content) = @_;
+	
+	# block that expects intermediary units
+	if (ref $content eq 'ARRAY') {
+		foreach my $unit (@$content) {
+			my @params;
+			if (true($unit->{pattern}) and true($unit->{exp})) {
+				@params = $self->{exp} =~ /$self->{pattern}/g;
+			}
+			
+			$self->{handler}->($self,
+				unit	=> $unit->{type},
+				params	=> @params ? \@params : undef,
+				content	=> $unit->{content},
+			);
+		}
+	} 
+	
+	# standard block
+	else {
+		my @params;
+		if (true($self->{pattern}) and true($self->{exp})) {
+			@params = $self->{exp} =~ /$self->{pattern}/g;
+		}
+		$self->{handler}->($self,
+			params	=> @params ? \@params : undef,
+			content	=> $content,
+		);
 	}
-	return $self->{handler}->($self, @_);
+	
+	return 1;
 }
 
 sub optimize {
@@ -271,10 +353,14 @@ sub new {
 
 sub handle {
 	my $self = shift;
+	my @params;
 	if (true($self->{pattern}) and true($self->{exp})) {
-		@{$self->{params}} = $self->{exp} =~ /$self->{pattern}/g;
+		@params = $self->{exp} =~ /$self->{pattern}/g;
 	}
-	return $self->{handler}->($self, @_);
+	return $self->{handler}->(
+		$self, 
+		params	=> @params ? \@params : undef
+	);
 }
 
 sub optimize {

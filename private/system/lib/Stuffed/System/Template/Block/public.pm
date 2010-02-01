@@ -35,16 +35,22 @@ use Stuffed::System::Utils qw(&quote);
 
 sub public {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_
+	};
 	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return if not $params;
 
-	my $f_path = $self->{params}[0];
+	my $f_path = $params->[0];
 	return if not $f_path;
 
-	my $pkg_name = $self->{params}[1]; # optional
+	my $pkg_name = $params->[1]; # optional
 	$pkg_name = $t->{pkg}->__name if false($pkg_name);
 
-	my $skin_id = $self->{params}[2]; # optional
+	my $skin_id = $params->[2]; # optional
 	$skin_id = $t->{skin}->id if false($skin_id);
 
 	$f_path = $skin_id.'/'.$f_path;

@@ -34,10 +34,15 @@ use Stuffed::System::Utils qw(&quote);
 
 sub error {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
 
-	my $err_num = $self->{params}[0];
-	my $err_method = $self->{params}[1];
+	my $err_num = $params->[0];
+	my $err_method = $params->[1];
 
 	my $compiled = '$system->error->get_error('.quote($err_num).')';
 	if (true($err_method)) {

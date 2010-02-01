@@ -32,8 +32,14 @@ $defs->{tmpl_flag} = {
 
 sub tmpl_flag {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-	my $var = $self->{params}[0];
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
+
+	my $var = $params->[0];
 	my $parsed = $self->{template}->compile(
 		template	=> $var,
 		tag_start	=> '<',

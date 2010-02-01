@@ -25,9 +25,13 @@ use strict;
 use vars qw($defs);
 
 $defs->{if} = {
-	pattern	=> qr/\s*(?:(not)\s+)?([^!=\s\%]+)(?:\s*([!<>=]+|has)\s*(?:"([^"]+)"|([^="\s\%]+)))?(?:\s+(or|and))?\s*/o,
-	handler	=> \&if,
-	version	=> 1.0,
+	pattern			=> qr/\s*(?:(not)\s+)?([^!=\s\%]+)(?:\s*([!<>=]+|has)\s*(?:"([^"]+)"|([^="\s\%]+)))?(?:\s+(or|and))?\s*/o,
+	handler			=> \&if,
+	version			=> 1.0,
+	intermediary	=> {
+		else 	=> qr/^\s*$/o,
+		elsif	=> qr/^\s*$/o, 
+	} 
 };
 
 my $actions = {
@@ -41,15 +45,27 @@ my $actions = {
 };
 
 sub if {
-	my ($self, $content) = @_;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-
+	my $self = shift;
+	my $in = {
+		unit	=> undef, # intermediary unit type
+		params	=> undef,
+		content	=> undef,
+		@_	
+	};
 	my $t = $self->{template};
+	my ($params, $content, $unit) = map { $in->{$_} } qw(params content unit);
+
+	if ($unit eq 'else') {
+		$t->add_to_compiled("else{".$t->compile(template => $content).'}');
+		return;
+	}
+
+	return if not $params;
 
 	my $compiled;
 
-	while (@{$self->{params}}) {
-		my ($not, $var, $action, $eq1, $eq2, $sep) = splice @{$self->{params}}, 0, 6;
+	while (@$params) {
+		my ($not, $var, $action, $eq1, $eq2, $sep) = splice @$params, 0, 6;
 		my $eq = true($eq1) ? $eq1 : $eq2;
 
 		next if false($var);
@@ -94,8 +110,8 @@ sub if {
 		$compiled .= " $sep " if $sep;
 	}
 
-	if ($self->{__elsif}) {
-		$t->add_to_compiled("}elsif($compiled){");
+	if ($unit eq 'elsif') {
+		$t->add_to_compiled("elsif($compiled){".$t->compile(template => $content).'}');
 	} else {
 		$t->add_to_compiled("if($compiled){".$t->compile(template => $content).'}');	
 	}

@@ -35,8 +35,14 @@ $defs->{user} = {
 
 sub user {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-	my ($pkg, $var) = @{$self->{params}};
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
+
+	my ($pkg, $var) = @$params;
 	$pkg = $self->{template}{pkg}->__name if false($pkg);
 
 	my $result;

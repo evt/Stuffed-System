@@ -33,8 +33,14 @@ $defs->{merge_files} = {
 };
 
 sub merge_files {
-	my ($self, $content) = @_;
+	my $self = shift;
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_	
+	};
 	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
 
 	require Stuffed::System::Utils;
 	my ($as_is, $paths) = Stuffed::System::Utils::extract_paths_from_html(

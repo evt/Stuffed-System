@@ -32,8 +32,14 @@ $defs->{language} = {
 
 sub language {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-	my $var = $self->{params}[0];
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
+
+	my $var = $params->[0];
 	return $self->optimize('$s->{language}->config->get('.Stuffed::System::Utils::quote($var).')');
 }
 

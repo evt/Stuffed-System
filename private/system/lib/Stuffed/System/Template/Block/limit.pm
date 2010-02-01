@@ -33,9 +33,17 @@ $defs->{limit} = {
 use Stuffed::System::Utils qw(&create_random &quote);
 
 sub limit {
-	my ($self, $content) = @_;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-	my $limit = $self->{params}[0];
+	my $self = shift;
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_	
+	};
+	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return if not $params;
+
+	my $limit = $params->[0];
 	$limit ||= 0;
 
 	my $t = $self->{template};

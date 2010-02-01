@@ -33,9 +33,16 @@ $defs->{dump} = {
 
 sub dump {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_	
+	};
 	my $t = $self->{template};
-	my $var = $self->{params}[0];
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return undef if not $params;
+
+	my $var = $params->[0];
 	if ($var eq 'vars') {
 		$var = '$v';
 	} else {

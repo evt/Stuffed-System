@@ -32,10 +32,15 @@ $defs->{env} = {
 
 sub env {
 	my $self = shift;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $in = {
+		params	=> undef,
+		@_
+	};
+	my $params = $in->{params};
+	return if not $params;
 
 	my $t = $self->{template};
-	my $var = $self->{params}[0];
+	my $var = $params->[0];
 	if ($var eq 'all') {
 		return 'join("<br>\n", map {"$_ => $ENV{$_}"} sort keys %ENV)';
 	} elsif ($var eq 'current_url') {

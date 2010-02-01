@@ -36,15 +36,22 @@ $defs->{text} = {
 };
 
 sub text {
-	my ($self, $content) = @_;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
+	my $self = shift;
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_
+	};
+	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return if not $params;
 
 	my @lines = ();
 	my $t = $self->{template};
-	my $id = $self->{params}[0];
+	my $id = $params->[0];
 
 	# optional
-	my $text_file = $self->{params}[1];
+	my $text_file = $params->[1];
 
 	my $final = '';
 

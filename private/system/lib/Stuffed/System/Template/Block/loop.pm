@@ -34,11 +34,17 @@ $defs->{loop} = {
 };
 
 sub loop {
-	my ($self, $content) = @_;
-	return if not $self->{params} or ref $self->{params} ne 'ARRAY';
-	my ($var, $as, $step_type, $steps) = @{$self->{params}};
-
+	my $self = shift;
+	my $in = {
+		params	=> undef,
+		content	=> undef,
+		@_	
+	};
 	my $t = $self->{template};
+	my ($params, $content) = map { $in->{$_} } qw(params content);
+	return if not $params;
+
+	my ($var, $as, $step_type, $steps) = @$params;
 
 	$as = true($as) ? $as : $var;
 
