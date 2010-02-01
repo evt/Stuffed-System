@@ -73,6 +73,11 @@ sub run {
 	my $pkg = $q->__pkg || $self->{__config}->get('default_pkg');
 	die "No suitable packages were found! You need to specify a package name in order to proceed!\n" if false($pkg);
 
+	# if the name of the package starts with a colon, we add the default package from system config in front
+	if ($pkg =~ /^:/) {
+		$pkg = $self->{__config}->get('default_pkg') . $pkg;
+	}
+
 	my $act = $q->__act;
 	if (true($act) and $act =~ /^_/) {
 		die q(Name of the action can not start with the underscore "_"!);

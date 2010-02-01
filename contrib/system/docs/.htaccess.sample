@@ -34,8 +34,8 @@ AddHandler cgi-script .cgi .pl
   RewriteRule ^system/([^/]+)/?$  index.cgi?__pkg=system&__act=$1 [L,QSA]
   RewriteRule ^system/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=system&__act=$1&__sub=$2 [L,QSA]
   
-  RewriteRule ^([^/]+)/?$  index.cgi?__pkg=idefit&__act=$1 [L,QSA]
-  RewriteRule ^([^/]+)/([^/]+)\.html$  index.cgi?__pkg=idefit&__act=$1&__sub=$2 [L,QSA]
-  RewriteRule ^([^/]+)/([^/]+)/?$  index.cgi?__pkg=idefit:$1&__act=$2 [L,QSA]
-  RewriteRule ^([^/]+)/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=idefit:$1&__act=$2&__sub=$3 [L,QSA]
+  RewriteRule ^([^/]+)/?$  index.cgi?__act=$1 [L,QSA]
+  RewriteRule ^([^/]+)/([^/]+)\.html$  index.cgi?__act=$1&__sub=$2 [L,QSA]
+  RewriteRule ^([^/]+)/([^/]+)/?$  index.cgi?__pkg=:$1&__act=$2 [L,QSA]
+  RewriteRule ^([^/]+)/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=:$1&__act=$2&__sub=$3 [L,QSA]
 </IfModule>

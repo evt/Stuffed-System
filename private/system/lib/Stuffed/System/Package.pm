@@ -42,7 +42,7 @@ sub __new {
 	$name =~ s/\./:/g;
 
 	# cleaning up the name (inherited mindlessly from system 3.x)
-	$name =~ s/^[:]+|[:]+$//g;
+	$name =~ s/^:+|:+$//g;
 
 	return $system->__get_pkg($name) if $system->__get_pkg($name);
 
