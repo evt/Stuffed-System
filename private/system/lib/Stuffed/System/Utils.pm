@@ -39,7 +39,7 @@ our @EXPORT_OK = qw(
 	&prepare_file_size &add_param_to_url &create_pages &get_number_suffix
 	&get_hash_cookie &set_hash_cookie &discover_functions &html_entities
 	&get_url_param &convert_from_json &convert_to_json &get_guest_country_code
-	&extract_paths_from_html &merge_files_together &plural_ru
+	&extract_paths_from_html &merge_files_together &plural_ru &get_image_info
 );
 
 use Stuffed::System;
@@ -1317,6 +1317,37 @@ sub cut_string {
 	$sub_string .= '...';
 
 	return $sub_string;
+}
+
+sub get_image_info {
+	my $in = {
+		image_data => undef, 
+		@_
+	};
+	my $image_data = $in->{image_data};
+	return undef if not $image_data;
+
+	my ( $x, $y, $format );
+
+	if (eval { require Image::Magick }) {
+		my $image = Image::Magick->new;
+		$image->BlobToImage($image_data);
+		( $x, $y, $format ) = map { lc($_) } $image->Get( 'columns', 'rows', 'magick' );
+	} 
+	elsif (eval { require Imager }) {
+		my $image = Imager->new || die Imager->errstr;
+		$image->read(data => $image_data) || die $image->errstr;
+		$x = $image->getwidth;
+		$y = $image->getheight;
+		$format = $image->tags(name => 'i_format');
+	} 
+	
+	# if all failed to load we just return the original data
+	else {
+		return undef;
+	}
+
+	return $x, $y, $format;
 }
 
 sub resize_image {
