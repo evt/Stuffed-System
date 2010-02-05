@@ -52,7 +52,7 @@ sub reload {
 		local $config = {};
 
 		for (1..3) {
-			eval(Stuffed::System::File->new($file, 'r')->contents);
+			eval(Stuffed::System::File->new($file, 'r', {is_text => 1})->contents);
 
 			# no error, we stop trying
 			last if not $@;
@@ -100,7 +100,7 @@ sub save {
 	(my $dir = $self->{file}) =~ s/[\/\\][^\/\\]+$//;
 	Stuffed::System::Utils::create_dirs($dir) if not -d $dir;
 
-	my $config = Stuffed::System::File->new($self->{file}, 'w', {access => 0666}) || die "Can't open file $self->{file} for writing: $!";
+	my $config = Stuffed::System::File->new($self->{file}, 'w', {access => 0666, is_text => 1}) || die "Can't open file $self->{file} for writing: $!";
 
 	# removing all parameters from this config object if "overwrite" param
 	# was specified

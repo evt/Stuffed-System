@@ -233,7 +233,7 @@ sub merge_files_together {
 		foreach my $file (@create_files) {
 			my @all;
 			foreach my $file_name ( @{ $file->{files} } ) {
-				my $f = Stuffed::System::File->new( $site_root . $file_name, 'r' ) || 
+				my $f = Stuffed::System::File->new( $site_root . $file_name, 'r', {is_text => 1} ) || 
 					die "Can't open file $site_root$file_name for reading during merging operation: $!";
 				my $contents = $f->contents;
 				$f->close;
@@ -251,7 +251,7 @@ sub merge_files_together {
 				push @all, $contents;
 			}
 
-			my $f = Stuffed::System::File->new( $file->{full_name}, 'w' )
+			my $f = Stuffed::System::File->new( $file->{full_name}, 'w', {is_text => 1} )
 			  || die "Can't create file $file->{full_name}: $!";
 			$f->print( join( '', @all ) )->close;
 			my $m = time();
@@ -771,7 +771,7 @@ sub cp {
 
 	return if false($source) or false($target);
 
-	# opening files and putting them in the binmode (for Windows)
+	# opening files and putting them in the binmode
 	my ( $s, $t );
 
 	if ( ref $source ) {
@@ -785,7 +785,7 @@ sub cp {
 		}
 	}
 	else {
-		$s = Stuffed::System::File->new( $source, 'r' )
+		$s = Stuffed::System::File->new( $source, 'r', {is_binary => 1} )
 		  || die "Can't open file [ $source ] for reading: $!";
 	}
 
@@ -800,12 +800,9 @@ sub cp {
 		}
 	}
 	else {
-		$t = Stuffed::System::File->new( $target, 'w' )
+		$t = Stuffed::System::File->new( $target, 'w', {is_binary => 1} )
 		  || die "Can't open file [ $target ] for writing: $!";
 	}
-
-	binmode $s->handle;
-	binmode $t->handle;
 
 	# initializing the read counter
 	my $read = 0;
@@ -891,7 +888,7 @@ sub dump {
 
 	if ( true( $options->{file} ) ) {
 		require Stuffed::System::File;
-		my $f = Stuffed::System::File->new( $options->{file}, 'w' );
+		my $f = Stuffed::System::File->new( $options->{file}, 'w', {is_text => 1} );
 		return undef if not $f;
 		$f->print($dump)->close;
 		return 1;
@@ -1530,7 +1527,7 @@ sub clean_html {
 	# trying to get file contents if they haven't been passed
 	if ( not defined $html and -f $filename ) {
 		require Stuffed::System::File;
-		my $f = Stuffed::System::File->new( $filename, 'r' ) || die $!;
+		my $f = Stuffed::System::File->new( $filename, 'r', {is_text => 1} ) || die $!;
 		$html = $f->contents;
 		$f->close;
 	}

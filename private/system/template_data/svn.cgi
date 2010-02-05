@@ -33,7 +33,7 @@ sub svn {
 	
 	if (-r $system_path.'/.revision') {
 		require Stuffed::System::File;
-		my $f = Stuffed::System::File->new($system_path.'/.revision', 'r');
+		my $f = Stuffed::System::File->new($system_path.'/.revision', 'r', {is_text => 1});
 		($revision = $f->contents) =~ s/\D+//g;
 		$f->close;
 	}

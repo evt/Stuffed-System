@@ -56,7 +56,7 @@ sub default {
 			$log_filename = $system->path.'/private/.ht_errors.browser.log';
 		}
 
-		my $file = Stuffed::System::File->new($log_filename, 'a');
+		my $file = Stuffed::System::File->new($log_filename, 'a', {is_text => 1});
 		if ($file) {
 			$file->print('['.localtime()." - $ip] $msg\n");
 			if ($url eq $actual_url) {

@@ -100,6 +100,9 @@ $config->{display_errors} = 1;
 # default charset for text/html content-type (IE, will give errors on "utf8" in the HTTP header of the Ajax response
 $config->{default_charset} = 'utf-8';
 
+# default Perl IO layer for files, "binary" for ":raw" and "text" for "encoding(UTF-8)"
+$config->{default_file_layer} = 'binary';
+
 # strip HTML comments from the templates when they are compiled
 $config->{strip_html_comments} = '1';
 

@@ -29,11 +29,9 @@
 
 package Stuffed::System::File;
 
-$VERSION = 1.02;
+$VERSION = 1.03;
 
 use strict;
-
-use open qw( :std :encoding(UTF-8) );
 
 use Stuffed::System;
 
@@ -45,18 +43,36 @@ sub LOCK_UN { 8 }
 # possible options:
 #   is_temp -- temporary file, should be deleted when the object will be destroyed
 #   is_binary -- a binary file, we should use binmode on the file handle after opening
+#	is_text -- a text file, we should set utf8 layer on it
 #   access -- access rights (0766 for example) should be set on the file after opening
 
 sub new {
 	my $self = bless({}, shift);
-	my ($name, $mode, $options) = @_;
+	my ($name, $mode, $o) = @_;
 	return if false($name);
-	$self->{options} = (ref $options eq 'HASH' ? $options : {});
+	
+	$self->{options} = (ref $o eq 'HASH' ? $o : {});
 	$mode = 'r' if not $mode or $mode !~ /^(?:w|u|a)$/;
 	$self->{name} = $name;
 	$self->open($mode) || return;
-	chmod $self->{options}{access}, $self->{name} if $self->{options}{access};
-	$self->set_binmode if $self->{options}{is_binary};
+	chmod $self->{options}{access}, $self->{name} if $o->{access};
+	
+	if ($o->{is_binary}) {
+		$self->set_binmode;	
+	} elsif ($o->{is_text}) {
+		$self->set_textmode	
+	} 
+	
+	# if system config was already loaded, check this setting, to load system config
+	# we already have to use this code, thus the check
+	elsif ($system->{__config} and $system->config->get('default_file_layer')) {
+		if ($system->config->get('default_file_layer') eq 'binary') {
+			$self->set_binmode;
+		} else {
+			$self->set_textmode;
+		}
+	}
+
 	return $self;
 }
 
@@ -71,7 +87,18 @@ sub set_binmode {
 
 	# opening file for reading if it is not already opened
 	$self->open('r') if not $self->{handle} and true($self->{name});
-	binmode $self->{handle} if $self->{opened};
+	binmode $self->{handle}, ':raw' if $self->{opened};
+	
+	return $self;
+}
+
+sub set_textmode {
+	my $self = shift;
+
+	# opening file for reading if it is not already opened
+	$self->open('r') if not $self->{handle} and true($self->{name});
+	binmode $self->{handle}, ':encoding(UTF-8)' if $self->{opened};
+	
 	return $self;
 }
 

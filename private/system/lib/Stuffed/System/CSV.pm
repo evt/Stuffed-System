@@ -104,7 +104,7 @@ sub save_as_file {
 	$filename = Stuffed::System::Utils::create_random(12).'.csv' if false($filename);
 
 	require Stuffed::System::File;
-	my $file = Stuffed::System::File->new($filename, 'w');
+	my $file = Stuffed::System::File->new($filename, 'w', {is_text => 1});
 	if ($file) {
 		$file->print(join("\n", @{$self->{contents}}));
 		$file->close;
@@ -119,7 +119,7 @@ sub __prepare_file {
 	# if the file was specified, but it is not opened yet, we open it
 	if (true($self->{file}) and not ref $self->{file}) {
 		require Stuffed::System::File;
-		$self->{file} = Stuffed::System::File->new($self->{file}, 'r') || die "Can't open file '$self->{file}': $!";
+		$self->{file} = Stuffed::System::File->new($self->{file}, 'r', {is_text => 1}) || die "Can't open file '$self->{file}': $!";
 	}
 
    # if the file was specified, but it is opened in a non-reading mode, we close
@@ -150,7 +150,7 @@ sub test_delimiter {
 	# closing and opening the file to reset the pointer
 	if (ref $self->{file}) {
 		$self->{file}->close;
-		$self->{file} = Stuffed::System::File->new($self->{file}, 'r') || die "Can't open file '$self->{file}': $!";
+		$self->{file} = Stuffed::System::File->new($self->{file}, 'r', {is_text => 1}) || die "Can't open file '$self->{file}': $!";
 	}
 
 	return $self->{text_csv}->parse($line);

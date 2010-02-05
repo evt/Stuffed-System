@@ -102,7 +102,7 @@ sub new {
 	{
 		no strict 'vars';
 		local $text = {};
-		my $f = Stuffed::System::File->new($filename, 'r');
+		my $f = Stuffed::System::File->new($filename, 'r', {is_text => 1});
 		eval($f->contents); die $@ if $@;
 		$f->close;
 		$cache->{$filename} = $text;

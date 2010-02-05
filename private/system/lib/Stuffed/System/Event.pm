@@ -57,7 +57,7 @@ sub new {
 	return $self if $disabled_events->{$pkg->__name}{$name};
 
 	# we load the event file or return if we can't open it
-	my $file = Stuffed::System::File->new($self->{file}, 'r') || return $self;
+	my $file = Stuffed::System::File->new($self->{file}, 'r', {is_text => 1}) || return $self;
 	while (my $line = $file->line) {
 		# cleaning the line
 		$line =~ s/^\s+|\s+$//sg;

@@ -598,7 +598,7 @@ sub restore_input_from_disk {
 	require Storable;
 
 	my $input_file = $dir.'/input.storable';
-	my $restore = Stuffed::System::File->new($input_file, 'r') || return undef;
+	my $restore = Stuffed::System::File->new($input_file, 'r', {is_binary => 1}) || return undef;
 	my $input = Storable::thaw($restore->contents);
 	$restore->close;
 
@@ -619,7 +619,7 @@ sub restore_input_from_disk {
 			Stuffed::System::Utils::cp($dir."/$file->{__tmp_filename}", $tmpfile);
 			unlink($dir."/$file->{__tmp_filename}");
 
-			$file->{file} = Stuffed::System::File->new($tmpfile, "r", {is_temp => 1}) || die "Can't open file $tmpfile for reading: $!";
+			$file->{file} = Stuffed::System::File->new($tmpfile, "r", {is_temp => 1, is_binary => 1}) || die "Can't open file $tmpfile for reading: $!";
 			$file->{file}->close;
 
 			$file->{__full_tmp_path} = $tmpfile;
@@ -662,7 +662,7 @@ sub save_input_to_disk {
 	}
 
 	my $input_file = $dir.'/input.storable';
-	my $save = Stuffed::System::File->new($input_file, 'w') || die "Can't open file $input_file for writing: $!";
+	my $save = Stuffed::System::File->new($input_file, 'w', {is_binary => 1}) || die "Can't open file $input_file for writing: $!";
 	$save->print(Storable::nfreeze($input))->close;
 
 	return 1;

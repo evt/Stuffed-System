@@ -117,7 +117,7 @@ sub new {
 		# this is done to mimic SSI behaviour
 		if ($in->{file} =~ /^(?:[\/\\]|\w:)/) {
 			my $filename = $ENV{DOCUMENT_ROOT}.$in->{file};
-			my $f = Stuffed::System::File->new($filename, 'r') || die "Can't open plain file $in->{file}: $!";
+			my $f = Stuffed::System::File->new($filename, 'r', {is_text => 1}) || die "Can't open plain file $in->{file}: $!";
 			$self->{plain} = $f->contents;
 			$f->close;
 		} else {
@@ -150,7 +150,7 @@ sub new {
 				# before it was actually written completely by another process; this
 				# resulted in Perl compile errors; our File class uses locks when
 				# opening files, so such problem never happens with it.
-				my $tmpl = Stuffed::System::File->new($cgifile, 'r') || die "Can't open compiled template $cgifile for reading: $!";
+				my $tmpl = Stuffed::System::File->new($cgifile, 'r', {is_text => 1}) || die "Can't open compiled template $cgifile for reading: $!";
 				my $code = $tmpl->contents;
 				$tmpl->close;
 				eval $code || die "Fatal error encountered while evaling template \"$cgifile\":\n$@\n";
@@ -174,7 +174,7 @@ sub new {
 			}
 			
 			if (not $exists) {
-				my $f = Stuffed::System::File->new($filename, 'r') || die "Can't open template $filename: $!";
+				my $f = Stuffed::System::File->new($filename, 'r', {is_text => 1}) || die "Can't open template $filename: $!";
 				$self->{template} = $f->contents;
 				$f->close;
 
@@ -193,7 +193,7 @@ sub new {
 
 				my $code = $self->__finalize_compiled($self->compile);
 
-				my $f = Stuffed::System::File->new($cgifile, 'w') || die "Can't write compiled template '$cgifile'. $!";
+				my $f = Stuffed::System::File->new($cgifile, 'w', {is_text => 1}) || die "Can't write compiled template '$cgifile'. $!";
 				$f->print($code)->close;
 
 				no strict 'vars';

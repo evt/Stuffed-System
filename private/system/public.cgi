@@ -69,8 +69,7 @@ sub default {
 	my ($f_ext) = $file =~ /\.([^\.]+)$/;
 	my $f_mime = (true($f_ext) and $mime->{$f_ext} ? $mime->{$f_ext} : undef);
 
-	#  my $contents = Stuffed::System::File->new($file, 'r')->contents;
-	my $f = Stuffed::System::File->new($file, 'r');
+	my $f = Stuffed::System::File->new($file, 'r', {is_binary => 1});
 	$just_finish->() if not $f;
 
 	binmode $f->handle;

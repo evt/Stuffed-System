@@ -40,7 +40,7 @@ sub __new {
 
 	# dot is an alternative separator for sub packages
 	$name =~ s/\./:/g;
-
+	
 	# cleaning up the name (inherited mindlessly from system 3.x)
 	$name =~ s/^:+|:+$//g;
 
@@ -300,7 +300,7 @@ sub __get_user {
 	my $pkg_path = $system->path.'/private/'.$class->__create_path($pkg);
 	my $filename = "$pkg_path/config/get_user.cfg";
 	if (-r $filename) {
-		my $file = Stuffed::System::File->new($filename, 'r');
+		my $file = Stuffed::System::File->new($filename, 'r', {is_text => 1});
 		if ($file) {
 			my $package = $file->line;
 			$package =~ s/^\s+//; $package =~ s/\s+$//;
