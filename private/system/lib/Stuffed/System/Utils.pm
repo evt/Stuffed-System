@@ -1440,6 +1440,7 @@ sub resize_image {
 		$image = $image->scale(
 			xpixels	=> $geometry->{x},
 			ypixels	=> $geometry->{y},
+			type	=> 'min', # the smaller of the two sizes is chosen
 			qtype	=> 'mixing', # 'mixing' — slower, better qual, 'normal' - faster, lower quality
 		);
 		
