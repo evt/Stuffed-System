@@ -1350,8 +1350,8 @@ sub get_image_info {
 sub resize_image {
 	my $in = {
 		image_data => undef,  # required, binary image data
-		width      => undef,  # required, target width of image
-		height     => undef,  # required, target height of image
+		width      => undef,  # either width or height is required, target width of image
+		height     => undef,  # either width or height is required, target height of image
 		exact      => undef,  # optional flag, that will force the width and
 		                      # height specified, cropping the image if required
 		accept_formats =>
@@ -1365,7 +1365,7 @@ sub resize_image {
 	my $height         = $in->{height};
 	my $exact          = $in->{exact};
 	my $accept_formats = $in->{accept_formats};
-	return undef if false($image_data) or false($width) or false($height);
+	return undef if false($image_data) or (false($width) and false($height));
 
 	my ($image, $x, $y, $format, $usingMagick, $usingImager);
 
@@ -1392,6 +1392,9 @@ sub resize_image {
 	else {
 		return $image_data;
 	}
+	
+	$width = $x if false($width);
+	$height = $y if false($height); 
 
 # ---------------------------------------------------------------------------
 	
