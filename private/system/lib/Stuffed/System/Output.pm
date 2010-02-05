@@ -90,13 +90,25 @@ sub say {
 sub context {
 	my $self = shift;
 	my $type = lc(shift);
+	
+	# checking iFrame context here to avoid initializing Input.pm on every init of Output.pm
+	if (not $self->{__checked_iframe_context}) {
+		if ($system->in->query('__x_requested_with') eq 'iframe') {
+			$self->{context} = 'iframe';
+		}
+		$self->{__checked_iframe_context} = 1;
+	}
+	
 	return $self->{context} if false($type);
 
 	if ($type eq 'web') {
-		return 1 if $self->{context} eq 'web' or $self->{context} eq 'ajax';
+		return 1 if $self->{context} eq 'web' or $self->{context} eq 'ajax' or $self->{context} eq 'iframe';
 	}
 	elsif ($type eq 'ajax') {
-		return 1 if $self->{context} eq 'ajax';
+		return 1 if $self->{context} eq 'ajax' or $self->{context} eq 'iframe';
+	}
+	elsif ($type eq 'iframe') {
+		return 1 if $self->{context} eq 'iframe';
 	}
 	elsif ($type eq 'shell') {
 		return 1 if $self->{context} eq 'shell';
