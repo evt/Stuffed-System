@@ -806,11 +806,10 @@ sub __just_die {
 		my $HTML;
 
 		if ($config and $config->get('display_errors')) {
-			if ($system->out->context eq 'ajax') {
+			if ($system->out->context('ajax')) {
 				$HTML = <<HTML;
-<strong>System error has just occured:</strong>
-
-<p>$message</p>
+<div><strong>System error has just occured:</strong></div>
+<div>$message</div>
 HTML
 			} else {
 				$HTML = <<HTML;
@@ -825,12 +824,11 @@ are already working on solving the problem.
 HTML
 			}
 		} else {
-			if ($system->out->context eq 'ajax') {
+			if ($system->out->context('ajax')) {
 				$HTML = <<HTML;
-<strong>A critical system error has just occured!</strong><br><br>
-
-We are sorry for any inconvenience this error might have caused. Be assured that we
-are already working on solving the problem.
+<div><strong>A critical system error has just occured!</strong></div>
+<div>We are sorry for any inconvenience this error might have caused. Be assured that we
+are already working on solving the problem.<div>
 HTML
 			} else {
 				$HTML = <<HTML;
@@ -843,8 +841,15 @@ are already working on solving the problem.
 HTML
 			}
 		}
-
-		$system->out->header(Status => '500 Internal Server Error');
+		
+		if ($system->out->context('iframe')) {
+			require Stuffed::System::Utils;
+			$HTML = '<textarea is_error="1">'.Stuffed::System::Utils::encode_html($HTML).'</textarea>';
+		} else {
+			# IE will not give us access via JS to the iFrame with a status 500 document
+			$system->out->header(Status => '500 Internal Server Error');
+		}
+		
 		$system->out->say($HTML);
 	} else {
 		print $message;

@@ -34,29 +34,41 @@ our @EXPORT_OK = qw(&return_error &return_html &return_js &return_json);
 
 sub return_error {
 	my $msg = shift;
-	my $options = {@_};
+	my $options = {
+		fields		=> undef, # list of form fields that should be marked as containing errors
+		no_headers	=> undef,
+		@_
+	};
 
 	if (true($options->{fields}) and not ref $options->{fields}) {
 		$options->{fields} = [$options->{fields}];
 	}
 
 	if (not $options->{no_headers}) {
-		$system->out->header(Status => '500 Internal Server Error');
+		# IE will not give us access via JS to the iFrame with a status 500 document 
+		if (not $system->out->context('iframe')) {
+			$system->out->header(Status => '500 Internal Server Error');	
+		}
 
 		if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR}) {
-			$system->out->header('Content-Type' => 'application/x-javascript');
+			$system->out->header('Content-Type' => 'application/json');
 		} else {
 			$system->out->header('Content-Type' => 'text/html');
 		}
 	}
 
-	if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR}) {
+	if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR} || $system->out->context('iframe')) {
 		my $reply = {msg => $msg};
 		if (ref $options->{fields} and @{$options->{fields}}) {
 			$reply->{fields} = $options->{fields};
 		}
 		
 		$msg = Stuffed::System::Utils::convert_to_json($reply);
+	}
+
+	if ($system->out->context('iframe')) {
+		require Stuffed::System::Utils;
+		$msg = '<textarea is_error="1">'.Stuffed::System::Utils::encode_html($msg).'</textarea>';
 	}
 
 	$system->out->say($msg);
@@ -66,7 +78,12 @@ sub return_error {
 
 sub return_html {
 	my $msg = shift;
-	my $options = {@_};
+	
+	if ($system->out->context('iframe')) {
+		require Stuffed::System::Utils;
+		$msg = '<textarea>'.Stuffed::System::Utils::encode_html($msg).'</textarea>';
+	}
+	
 	$system->out->header('Content-Type' => 'text/html');
 	$system->out->say($msg);
 	$system->config->set(debug => 0);
@@ -75,7 +92,6 @@ sub return_html {
 
 sub return_js {
 	my $msg = shift;
-	my $options = {@_};
 	$system->out->header('Content-Type' => 'application/x-javascript');
 	$system->out->say($msg);
 	$system->config->set(debug => 0);
@@ -85,12 +101,15 @@ sub return_js {
 sub return_json {
 	my $hash = shift;
 
-	$system->out->header('Content-Type' => 'application/json');
-
 	require Stuffed::System::Utils;
-
-#	my $json = Stuffed::System::Utils::produce_code($hash, json => 1, allow_blessed => 1);
 	my $json = Stuffed::System::Utils::convert_to_json($hash);
+	
+	if ($system->out->context('iframe')) {
+		require Stuffed::System::Utils;
+		$json = '<textarea is_json="1">'.Stuffed::System::Utils::encode_html($json).'</textarea>';
+	} else {
+		$system->out->header('Content-Type' => 'application/json');		
+	}
 
 	$system->out->say($json);
 	$system->config->set(debug => 0);
