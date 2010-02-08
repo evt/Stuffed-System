@@ -147,8 +147,7 @@ sub __get_query {
 		my $result = $self->__parse_query($ENV{QUERY_STRING});
 		if ($result) {
 			foreach my $key (keys %$result) {
-
-# if the key is already defined from another type of request, we don't overwrite it
+				# if the key is already defined from another type of request, we don't overwrite it
 				next if $self->{query}{$key};
 				$self->{query}{$key} = $result->{$key};
 			}
@@ -172,7 +171,7 @@ sub __get_query {
 		if ($result) {
 			foreach my $key (keys %$result) {
 
-# if the key is already defined from another type of request, we don't overwrite it
+				# if the key is already defined from another type of request, we don't overwrite it
 				next if $self->{query}{$key};
 				$self->{query}{$key} = $result->{$key};
 			}
@@ -324,15 +323,16 @@ sub get_query_as_url {
 	return join('&', @query);
 }
 
-sub find_query {
+sub find_key {
 	my ($self, $key) = @_;
-	return '' if false $key;
+	return if false $key;
 
 	my @found = ();
 	foreach my $query (keys %{$self->{query}}) {
 		next if $query !~ /$key/;
 		push @found, $query;
 	}
+	
 	return @found;
 }
 
@@ -362,9 +362,9 @@ sub __parse_multipart {
 
 				my $tmp_filename = create_random().'.form';
 
-             # if temporary path exists we create the temporary file in it,
-             # otherwise we will try to create the file in the current directory
-             # (whatever it is)
+				# if temporary path exists we create the temporary file in it,
+				# otherwise we will try to create the file in the current directory
+				# (whatever it is)
 				my $tmpfile = $self->{__upload_path}.$tmp_filename;
 
 				$part->{file} = Stuffed::System::File->new($tmpfile, "w", {is_temp => 1}) || die "Can't open file $tmpfile for writing: $!";
@@ -429,14 +429,13 @@ sub __parse_multipart {
 		$config->set(
 			content_length => $ENV{CONTENT_LENGTH},
 			upload_started => time()
-		  )->save;
+		)->save;
 
 		$system->on_destroy(sub {
-				unlink $self->{__upload_path}.'info.cgi';
-
-          # rmdir will only delete a directory if it is empty, just what we need
-				rmdir substr($self->{__upload_path}, 0, -1);
-			  });
+			unlink $self->{__upload_path}.'info.cgi';
+			# rmdir will only delete a directory if it is empty, just what we need
+			rmdir substr($self->{__upload_path}, 0, -1);
+		});
 	}
 
 	my ($crlf, $pos, $part, $parts, $content);
@@ -482,8 +481,8 @@ sub __parse_multipart {
 				($part->{name}) = $part->{header}{'Content-Disposition'} =~ /\s+name="?([^\";]*)"?/;
 				($part->{filename}) = $part->{header}{'Content-Disposition'} =~/\s+filename="?([^\"]*)"?/;
 
-        # if this part is a file, then we get the filename from the full path
-        # that some browsers specify, we are also killing all spaces in the name
+				# if this part is a file, then we get the filename from the full path
+				# that some browsers specify, we are also killing all spaces in the name
 				if (true($part->{filename})) {
 					($part->{filename}) = $part->{filename} =~ /([^\\\/\:]+)$/;
 					$part->{filename} =~ s/\s+//g;
@@ -499,9 +498,9 @@ sub __parse_multipart {
 				$pos = index($fusion, $boundary);
 				if ($pos >= 0) {
 
-                 # we found the end of the current value, so we are switching to
-                 # header mode once again and reiterate but only if this is not
-                 # the last boundary
+					# we found the end of the current value, so we are switching to
+					# header mode once again and reiterate but only if this is not
+					# the last boundary
 					$save_value->($part, substr($fusion, 0, $pos-length($crlf)), $content_read, 1);
 
 					$part->{file}->close if $part->{file};
@@ -514,9 +513,9 @@ sub __parse_multipart {
 						last BUFFER;
 					}
 
-                # we might be on the very last edge of boundary and no $crlf was
-                # yet read for this boundary, so we figure out how much we need
-                # to read from STDIN to skip crlf and just do it
+					# we might be on the very last edge of boundary and no $crlf was
+					# yet read for this boundary, so we figure out how much we need
+					# to read from STDIN to skip crlf and just do it
 					my $cut = $pos+length($boundary.$crlf);
 					if ($cut > length($fusion)) {
 						my $to_remove = $cut - length($fusion);
@@ -529,8 +528,8 @@ sub __parse_multipart {
 					next CONTENT;
 				} else {
 
-                 # boundary not found, so we do something with the current value
-                 # and reiterate
+					# boundary not found, so we do something with the current value
+					# and reiterate
 					if ($req >= length($content)) {
 						$part->{tail} = "" if not defined $part->{tail};
 						my $len = length($part->{tail}) - $req;
@@ -560,23 +559,18 @@ sub __parse_multipart {
 	foreach my $part (@$parts) {
 		if ($part->{name} and true($part->{value}) and not $part->{filename}) {
 			push @{$query->{$part->{name}}}, $part->{value};
-
-			#      push @{$self->{query}{$part->{name}}}, $part->{value};
 		}
 
 		# saving file information
 		elsif ($part->{name} and $part->{filename}) {
 			$self->{files}{$part->{name}} = $part;
-			push @{$query->{$part->{name}}}, $part->{value};
-
-			#      push @{$self->{query}{$part->{name}}}, $part;
+			push @{$query->{$part->{name}}}, $part->{filename};
 		}
 	}
 
 	if ($query) {
 		foreach my $key (keys %$query) {
-
-# if the key is already defined from another type of request, we don't overwrite it
+			# if the key is already defined from another type of request, we don't overwrite it
 			next if $self->{query}{$key};
 			$self->{query}{$key} = $query->{$key};
 		}
