@@ -136,6 +136,10 @@ sub __get_query {
 		foreach my $item (@ARGV) {
 			my ($name, $value) = $item =~ /^--(.+?)=["']*(.+)["']*$/;
 			next if false($name) or false($value);
+			
+			# saving keys order
+			push @{$self->{query_order}}, $name if not exists $self->{query}{$name};
+
 			push @{$self->{query}{$name}}, $value;
 		}
 	}
@@ -144,12 +148,17 @@ sub __get_query {
 	# before multipart form processing below because query string might contain
 	# special flags (X-Progress-ID) for the multipart processing
 	if (true($ENV{QUERY_STRING})) {
-		my $result = $self->__parse_query($ENV{QUERY_STRING});
+		my ($result, $order) = $self->__parse_query($ENV{QUERY_STRING});
 		if ($result) {
 			foreach my $key (keys %$result) {
 				# if the key is already defined from another type of request, we don't overwrite it
 				next if $self->{query}{$key};
 				$self->{query}{$key} = $result->{$key};
+			}
+			
+			my %existing_idx = $self->{query_order} ? map { $_ => 1 } @{$self->{query_order}} : ();
+			foreach my $key (@$order) {
+				push @{$self->{query_order}}, $key if not $existing_idx{$key};	
 			}
 		}
 	}
@@ -167,13 +176,17 @@ sub __get_query {
 	if ($ENV{REQUEST_METHOD} and $ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_LENGTH}) {
 		binmode STDIN;
 		read(STDIN, $self->{__stdin}, $ENV{CONTENT_LENGTH});
-		my $result = $self->__parse_query($self->{__stdin});
+		my ($result, $order) = $self->__parse_query($self->{__stdin});
 		if ($result) {
 			foreach my $key (keys %$result) {
-
 				# if the key is already defined from another type of request, we don't overwrite it
 				next if $self->{query}{$key};
 				$self->{query}{$key} = $result->{$key};
+			}
+			
+			my %existing_idx = $self->{query_order} ? map { $_ => 1 } @{$self->{query_order}} : ();
+			foreach my $key (@$order) {
+				push @{$self->{query_order}}, $key if not $existing_idx{$key};	
 			}
 		}
 	}
@@ -186,7 +199,7 @@ sub __parse_query {
 	# removing a potential anchor link from the end of the query string
 	$string =~ s/#(.+)$//g;
 
-	my ($key, $value, $buffer, $query);
+	my ($key, $value, $buffer, $query, $order);
 	my @pairs = split(/&/, $string);
 
 	foreach (@pairs) {
@@ -197,10 +210,12 @@ sub __parse_query {
 
 		# skipping parameter with an empty value
 		next if false($value);
+		
+		push @$order, $key if not exists $query->{$key};
 		push @{$query->{$key}}, $value;
 	}
 
-	return $query;
+	return wantarray ? ($query, $order) : $query;
 };
 
 sub q {
@@ -324,13 +339,13 @@ sub get_query_as_url {
 }
 
 sub find_key {
-	my ($self, $key) = @_;
-	return if false $key;
+	my ($self, $pattern) = @_;
+	return if false($pattern);
 
 	my @found = ();
-	foreach my $query (keys %{$self->{query}}) {
-		next if $query !~ /$key/;
-		push @found, $query;
+	foreach my $key (@{$self->{query_order}}) {
+		next if $key !~ /$pattern/;
+		push @found, $key;
 	}
 	
 	return @found;
@@ -554,26 +569,29 @@ sub __parse_multipart {
 
 	$config->set(upload_finished => 1)->save if $config;
 
-	my $query;
+	my $query = {};
+	
+	my %existing_idx = $self->{query_order} ? map { $_ => 1 } @{$self->{query_order}} : ();
 
 	foreach my $part (@$parts) {
-		if ($part->{name} and true($part->{value}) and not $part->{filename}) {
-			push @{$query->{$part->{name}}}, $part->{value};
+		my $name = $part->{name};
+		
+		if ($name and true($part->{value}) and not $part->{filename}) {
+			push @{$self->{query_order}}, $name if not $existing_idx{$name} and not exists $query->{$name};
+			push @{$query->{$name}}, $part->{value};
 		}
 
 		# saving file information
-		elsif ($part->{name} and $part->{filename}) {
-			$self->{files}{$part->{name}} = $part;
-			push @{$query->{$part->{name}}}, $part->{filename};
+		elsif ($name and $part->{filename}) {
+			$self->{files}{$name} = $part;
+			push @{$query->{$name}}, $part->{filename};
 		}
 	}
 
-	if ($query) {
-		foreach my $key (keys %$query) {
-			# if the key is already defined from another type of request, we don't overwrite it
-			next if $self->{query}{$key};
-			$self->{query}{$key} = $query->{$key};
-		}
+	foreach my $key (keys %$query) {
+		# if the key is already defined from another type of request, we don't overwrite it
+		next if $self->{query}{$key};
+		$self->{query}{$key} = $query->{$key};
 	}
 }
 
