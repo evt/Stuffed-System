@@ -283,7 +283,7 @@ sub handle {
 		foreach my $unit (@$content) {
 			my @params;
 			if (true($unit->{pattern}) and true($unit->{exp})) {
-				@params = $self->{exp} =~ /$self->{pattern}/g;
+				@params = $unit->{exp} =~ /$self->{pattern}/g;
 			}
 			
 			$self->{handler}->($self,
