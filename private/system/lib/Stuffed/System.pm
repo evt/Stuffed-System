@@ -35,7 +35,7 @@ use Stuffed::System::True;
 # index.cgi)
 use CGI::Carp qw(fatalsToBrowser);
 
-require Exporter; @ISA = qw(Exporter); @EXPORT = qw($system &true &false);
+require Exporter; @ISA = qw(Exporter); @EXPORT = qw($system &true &false &dump);
 
 sub new {
 	my ($class, $sys_path, $pkg_path) = @_;
@@ -72,7 +72,7 @@ sub run {
 
 	my $pkg = $q->__pkg || $self->{__config}->get('default_pkg');
 	die "No suitable packages were found! You need to specify a package name in order to proceed!\n" if false($pkg);
-
+	
 	# if the name of the package starts with a colon, we add the default package from system config in front
 	if ($pkg =~ /^:/) {
 		$pkg = $self->{__config}->get('default_pkg') . $pkg;
@@ -203,7 +203,11 @@ sub path     {
 
 sub config { $_[0]->{__config} }
 sub error  { $_[0]->{error} }
-sub dump   { shift; Stuffed::System::Utils::dump(@_) }
+sub dump   { 
+	shift @_ if ref $_[0] eq __PACKAGE__;
+	Stuffed::System::Utils::dump(@_) 
+}
+	
 sub on_destroy {
 	my ($self, $code) = @_;
 	return undef if not $code;
