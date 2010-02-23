@@ -34,6 +34,11 @@ $defs->{if} = {
 	} 
 };
 
+$defs->{if}{intermediary} = {
+	else 	=> qr/^\s*$/o,
+	elsif	=> $defs->{if}{pattern}, 
+};
+
 my $actions = {
 	'='		=> 'eq',
 	'=='	=> 'eq',
