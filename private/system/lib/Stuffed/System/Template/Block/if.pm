@@ -25,13 +25,9 @@ use strict;
 use vars qw($defs);
 
 $defs->{if} = {
-	pattern			=> qr/\s*(?:(not)\s+)?([^!=\s\%]+)(?:\s*([!<>=]+|has)\s*(?:"([^"]+)"|([^="\s\%]+)))?(?:\s+(or|and))?\s*/o,
-	handler			=> \&if,
-	version			=> 1.0,
-	intermediary	=> {
-		else 	=> qr/^\s*$/o,
-		elsif	=> qr/^\s*$/o, 
-	} 
+	pattern	=> qr/\s*(?:(not)\s+)?([^!=\s\%]+)(?:\s*([!<>=]+|has)\s*(?:"([^"]+)"|([^="\s\%]+)))?(?:\s+(or|and))?\s*/o,
+	handler	=> \&if,
+	version	=> 1.0,
 };
 
 $defs->{if}{intermediary} = {

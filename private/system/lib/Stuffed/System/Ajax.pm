@@ -30,7 +30,7 @@ use strict;
 use Stuffed::System;
 
 use base 'Exporter';
-our @EXPORT_OK = qw(&return_error &return_html &return_js &return_json);
+our @EXPORT_OK = qw(&return_error &return_html &return_js &return_json &return_xml);
 
 sub return_error {
 	my $msg = shift;
@@ -71,9 +71,11 @@ sub return_error {
 		$msg = '<textarea is_error="1">'.Stuffed::System::Utils::encode_html($msg).'</textarea>';
 	}
 
-	$system->out->say($msg);
-	$system->config->set(debug => 0);
-	$system->stop;
+	__say($msg);
+}
+
+sub return_xml {
+	__say(shift, 'text/xml');
 }
 
 sub return_html {
@@ -84,18 +86,11 @@ sub return_html {
 		$msg = '<textarea>'.Stuffed::System::Utils::encode_html($msg).'</textarea>';
 	}
 	
-	$system->out->header('Content-Type' => 'text/html');
-	$system->out->say($msg);
-	$system->config->set(debug => 0);
-	$system->stop;
+	__say($msg, 'text/html');
 }
 
 sub return_js {
-	my $msg = shift;
-	$system->out->header('Content-Type' => 'application/x-javascript');
-	$system->out->say($msg);
-	$system->config->set(debug => 0);
-	$system->stop;
+	__say(shift, 'application/x-javascript');
 }
 
 sub return_json {
@@ -111,7 +106,13 @@ sub return_json {
 		$system->out->header('Content-Type' => 'application/json');		
 	}
 
-	$system->out->say($json);
+	__say($json);
+}
+
+sub __say {
+	my ($content, $type) = @_;
+	$system->out->header('Content-Type' => $type) if true($type);
+	$system->out->say($content);
 	$system->config->set(debug => 0);
 	$system->stop;
 }
