@@ -27,15 +27,18 @@ package Stuffed::System;
 $VERSION = 4.00;
 
 use strict;
-use vars qw($system @ISA @EXPORT);
-use Stuffed::System::True;
 
 # in case this file was loaded directly somewhere we load CGI::Carp again
 # (there should be no speed penality for us if this was already done in
 # index.cgi)
 use CGI::Carp qw(fatalsToBrowser);
 
-require Exporter; @ISA = qw(Exporter); @EXPORT = qw($system &true &false &dump);
+our $system;
+
+use Stuffed::System::True;
+
+use base 'Exporter';
+our @EXPORT = qw($system &true &false &dump);
 
 sub new {
 	my ($class, $sys_path, $pkg_path) = @_;
@@ -91,7 +94,24 @@ sub run {
 	# default subroutine is called 'default' (suprise!)
 	$sub = 'default' if false($sub);
 
-	$self->pkg($pkg)->$act()->$sub(@_);
+	my $pkg = $self->pkg($pkg);
+	
+	my %reserved_idx = map { s/^&//; $_ => 1 } grep { /^[^\$%@*]/ } @EXPORT;
+	if ($reserved_idx{$act}) {
+		$pkg->__missing_error(
+			action_name => $act,
+			is_reserved	=> 1,
+		);
+	} 
+	elsif ($reserved_idx{$sub}) {
+		$pkg->__missing_error(
+			action_name => $act,
+			sub_name	=> $sub,
+			is_reserved	=> 1,
+		);
+	}
+	
+	$pkg->$act()->$sub(@_);
 
 	return $self;
 }

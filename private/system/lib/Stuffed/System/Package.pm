@@ -132,19 +132,29 @@ sub __missing_error {
 	my $in = {
 		action_name => undef,
 		sub_name    => undef,
+		is_reserved	=> undef,
 		@_
 	  };
 	my $action_name = $in->{action_name};
 	my $sub_name = $in->{sub_name};
+	my $is_reserved = $in->{is_reserved};
 
 	# we only die if 404 error was not requested in system config
 	if (not $system->config->get('use_404')) {
 		if (true($action_name) and true($sub_name)) {
-			die qq(Subroutine "$sub_name" is not supported in action "$action_name" from package "$self->{__name}"!\n);
+			if ($is_reserved) {
+				die qq(Name "$sub_name" is reserved in Stuffed System and can't be used as a name of a sub (in action "$action_name" from package "$self->{__name}").\n);
+			} else {
+				die qq(Subroutine "$sub_name" is not supported in action "$action_name" from package "$self->{__name}".\n);	
+			}
 		} elsif (true($action_name)) {
-			die qq(Action "$action_name" is not supported in package "$self->{__name}"!\n);
+			if ($is_reserved) {
+				die qq(Name "$action_name" is reserved in Stuffed System and can't be used as a name of an action (in package "$self->{__name}").\n);
+			} else {
+				die qq(Action "$action_name" is not supported in package "$self->{__name}".\n);	
+			}
 		} else {
-			die qq(Package \"$self->{__name}\" is not supported!\n);
+			die qq(Package \"$self->{__name}\" is not supported.\n);
 		}
 	}
 
