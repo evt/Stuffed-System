@@ -576,8 +576,9 @@ sub __parse_multipart {
 	foreach my $part (@$parts) {
 		my $name = $part->{name};
 		
+		push @{$self->{query_order}}, $name if not $existing_idx{$name} and not exists $query->{$name};
+		
 		if ($name and true($part->{value}) and not $part->{filename}) {
-			push @{$self->{query_order}}, $name if not $existing_idx{$name} and not exists $query->{$name};
 			push @{$query->{$name}}, $part->{value};
 		}
 
