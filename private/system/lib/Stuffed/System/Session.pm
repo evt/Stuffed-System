@@ -272,7 +272,7 @@ where id = ?
 
 	# saving current user ip in the cookie if this option is switched on
 	if ($self->{settings}{sessions_ip_in_cookie} and $system->in->cookie('user_ip') ne $self->{ip}) {
-		$system->out->cookie(name => 'user_ip', value => $self->{ip}, expires => '+'.$self->{settings}{sessions_lifetime}.'s');
+		$system->out->cookie(name => 'user_ip', value => $self->{ip});
 	}
 
 	return $self;
