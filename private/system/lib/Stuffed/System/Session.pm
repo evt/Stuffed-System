@@ -246,7 +246,7 @@ sub __check_session {
 
 	if ($self->{signature} ne $session->{signature}) {
 		if ($self->{settings}{sessions_ip_in_cookie} and $self->{signature_cookie}) {
-			return $self if $self->{signature} ne $session->{signature_cookie};
+			return $self if $session->{signature} ne $self->{signature_cookie};
 		} else {
 			return $self;
 		}
@@ -256,9 +256,14 @@ sub __check_session {
 	$self->{session} = $session;
 	$self->{id} = $id;
 
-	# session was successfully initialized, we renew its last usage time
-	$sth = $system->dbh->prepare("update $self->{settings}{table} set used = unix_timestamp(now()) where id = ?");
-	$sth->execute($id);
+	# session was successfully initialized, we renew its last usage time and also signature,
+	# because it might have been changed due to the IP changing
+	$sth = $system->dbh->prepare("
+update $self->{settings}{table} 
+set used = unix_timestamp(now()), signature = ? 
+where id = ?
+	");
+	$sth->execute($self->{signature}, $id);
 	$sth->finish;
 
 	if ($system->in->cookie('sid') ne $id) {
