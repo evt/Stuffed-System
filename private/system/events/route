@@ -1,0 +1,6 @@
+# Event: route
+
+# Event is called at the beginning of the system routes dispatcher logic,
+# plugins running on this event can delete "__path" parameter from 
+# the system's Input object and thus prevent the default system
+# logic from working.
