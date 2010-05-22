@@ -25,5 +25,5 @@ AddHandler cgi-script .cgi .pl
 	RewriteRule ^(robots.txt|favicon.ico)$  /public/$1 [L,QSA]
 
 	# main system 4 dispatch rule
-	RewriteRule ^(.+)$	index.cgi?__path=$1
+	RewriteRule ^(.+)$	index.cgi?__path=$1	[L,QSA]
 </IfModule>
