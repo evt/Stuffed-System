@@ -13,29 +13,17 @@ AddHandler cgi-script .cgi .pl
 #PerlHandler ModPerl::Registry
 
 <IfModule mod_rewrite.c>
-  RewriteEngine On
+	RewriteEngine On
 
-  # serve actual file or directory if it exists
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d [OR]
-  RewriteCond %{REQUEST_URI} ^/public
-  RewriteRule ^.*$ - [S=35]
+	# serve actual file or directory if it exists
+	RewriteCond %{REQUEST_FILENAME} -f [OR]
+	RewriteCond %{REQUEST_FILENAME} -d [OR]
+	RewriteCond %{REQUEST_URI} ^/public
+	RewriteRule ^.*$ - [S=35]
   
-  # show standard server's 404 error for these files instead of routing them through Stuffed System
-  RewriteRule ^(robots.txt|favicon.ico)$  /public/$1 [L,QSA]
-  
-  # standard stuffed system 4 rewrite rules, only system and default package;
-  # package name should always be followed by an action name, even if it is
-  # "index", just "/pkg/" in the URL would be treated as an action of the
-  # default package; action name is the last part of the path just before
-  # the optional .html part; .html part now represents a subroutine and 
-  # translates to __sub=subroutine
-  RewriteRule ^system/?$  index.cgi?__pkg=system [L,QSA]
-  RewriteRule ^system/([^/]+)/?$  index.cgi?__pkg=system&__act=$1 [L,QSA]
-  RewriteRule ^system/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=system&__act=$1&__sub=$2 [L,QSA]
-  
-  RewriteRule ^([^/]+)/?$  index.cgi?__act=$1 [L,QSA]
-  RewriteRule ^([^/]+)/([^/]+)\.html$  index.cgi?__act=$1&__sub=$2 [L,QSA]
-  RewriteRule ^([^/]+)/([^/]+)/?$  index.cgi?__pkg=:$1&__act=$2 [L,QSA]
-  RewriteRule ^([^/]+)/([^/]+)/([^/]+)\.html$  index.cgi?__pkg=:$1&__act=$2&__sub=$3 [L,QSA]
+	# show standard server's 404 error for these files instead of routing them through Stuffed System
+	RewriteRule ^(robots.txt|favicon.ico)$  /public/$1 [L,QSA]
+
+	# main system 4 dispatch rule
+	RewriteRule ^(.+)$	index.cgi?__path=$1
 </IfModule>

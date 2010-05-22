@@ -122,7 +122,7 @@ CODE
 	$system->__save_pkg($self);
 
 	# processing 'start' event for the package
-	$self->__event('pkg_start')->process(pkg => $self);
+	$self->__event('start')->process(pkg => $self);
 
 	return $self;
 }

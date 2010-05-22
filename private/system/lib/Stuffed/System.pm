@@ -67,10 +67,13 @@ sub new {
 sub run {
 	my $self = shift;
 
-	# always initializing system package to process 'pkg_start' event for the
+	# always initializing system package to process 'start' event for the
 	# whole system before anything else
 	$self->pkg('system');
-	
+
+	# calling a path dispatcher (which has its own pluggable event)	
+	$self->__dispatch;
+
 	my $q = $self->in->q;
 
 	my $pkg = $q->__pkg || $self->{__config}->get('default_pkg');
@@ -91,7 +94,7 @@ sub run {
 
 	my $sub = $q->__sub;
 
-	# default subroutine is called 'default' (suprise!)
+	# default subroutine is called 'default' (surprise!)
 	$sub = 'default' if false($sub);
 
 	my $pkg = $self->pkg($pkg);
@@ -177,6 +180,43 @@ sub __init {
 	return $self;
 }
 
+sub __dispatch {
+	my $self = shift;
+	my $q = $system->in->q;
+	
+	# plugins running on this event can delete __path query parameter and this will 
+	# automatically disable the default logic below
+	$self->pkg('system')->__event('route')->process;
+	
+	my $path = $q->__path;
+	return if false($path);
+	
+	# standard system 4 dispatch routes --
+	# /subpkg/, /subpkg/action/, /subpkg/action/sub.html (main package is taken from default_pkg in system config)
+	# /action/, /action/sub.html 
+	# /system/, /system/action/, /system/action/sub.html
+	
+	if  ($path =~ m|^system/?([^/]+)?/?(?:([^/]+)?\.html)?$|) {
+		my ($act, $sub) = ($1, $2);
+		$q->__pkg('system');
+		$q->__act($act) if true($act);
+		$q->__sub($sub) if true($sub);
+	}
+
+	elsif ($path =~ m|^([^/]+)/?(?:([^/]+)?\.html)?$|) {
+		my ($act, $sub) = ($1, $2);
+		$q->__act($act);
+		$q->__sub($sub) if true($sub);		
+	}
+	
+	elsif ($path =~ m|^([^/]+)/([^/]+)/?(?:([^/]+)?\.html)?$|) {
+		my ($pkg, $act, $sub) = ($1, $2, $3);
+		$q->__pkg(':'.$pkg);
+		$q->__act($act);
+		$q->__sub($sub) if true($sub);		
+	}
+}
+
 sub dbh {
 	my $self = shift;
 	return $self->{dbh} if $self->{dbh};
@@ -243,8 +283,8 @@ sub stop {
 		@_
 	  };
 
-	# processing 'system_stop' event
-	$self->pkg('system')->__event('system_stop')->process(pkg => $self);
+	# processing 'stop' event
+	$self->pkg('system')->__event('stop')->process(pkg => $self);
 	
 	# database debugging is switched on, handle the debugging information
 	if ($self->{dbh} and $self->{dbh}{__stuffed_debug_db}) {
