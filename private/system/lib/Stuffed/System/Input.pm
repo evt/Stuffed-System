@@ -134,8 +134,13 @@ sub __get_query {
 	# command line parameters
 	if (@ARGV) {
 		foreach my $item (@ARGV) {
-			my ($name, $value) = $item =~ /^--(.+?)=["']*(.+)["']*$/;
-			next if false($name) or false($value);
+			my ($name, $value) = $item =~ /^--(.+?)(?:=(.+))?$/;
+     		$value =~ s/^['"]+//; $value =~ s/['"]+$//;
+     		next if false($name);
+
+			# parameter without a value is ok if it is specified via the command line, in this case
+			# we set a default value of 1 for it (thanks go out to Eugene) 
+			$value = 1 if false($value);
 			
 			# saving keys order
 			push @{$self->{query_order}}, $name if not exists $self->{query}{$name};
