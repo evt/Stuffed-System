@@ -1,75 +1,113 @@
-DROP TABLE IF EXISTS `ss_system_cache`;
+# Sequel Pro dump
+# Version 2210
+# http://code.google.com/p/sequel-pro
+#
+# Host: localhost (MySQL 5.1.39)
+# Database: gifts
+# Generation Time: 2010-05-25 17:45:30 +0400
+# ************************************************************
 
-CREATE TABLE `ss_system_cache` (
-  `id` VARCHAR(32) COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `added` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `content` MEDIUMTEXT,
-  `is_code` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+
+# Dump of table system_cache
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `system_cache`;
+
+CREATE TABLE `system_cache` (
+  `id` varchar(32) NOT NULL DEFAULT '',
+  `added` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `content` mediumblob,
+  `is_code` tinyint(1) unsigned NOT NULL DEFAULT '0',
   KEY `id` (`id`)
-)ENGINE=MyISAM
-CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `ss_system_cvs_messages`;
 
-CREATE TABLE `ss_system_cvs_messages` (
-  `message_id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `time_submitted` DATETIME NOT NULL,
-  `author` VARCHAR(20) COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `tag` VARCHAR(50) COLLATE utf8_general_ci DEFAULT NULL,
-  `message` TEXT COLLATE utf8_general_ci NOT NULL,
-  PRIMARY KEY (`message_id`)
-)ENGINE=MyISAM
-AUTO_INCREMENT=1152 CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
 
-DROP TABLE IF EXISTS `ss_system_sessions`;
+# Dump of table system_sessions
+# ------------------------------------------------------------
 
-CREATE TABLE `ss_system_sessions` (
-  `id` VARCHAR(32) COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `used` INTEGER(10) UNSIGNED NOT NULL DEFAULT '0',
-  `signature` VARCHAR(100) COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `content` TEXT COLLATE utf8_general_ci,
+DROP TABLE IF EXISTS `system_sessions`;
+
+CREATE TABLE `system_sessions` (
+  `id` varchar(32) NOT NULL DEFAULT '',
+  `used` int(10) unsigned NOT NULL DEFAULT '0',
+  `signature` varchar(100) NOT NULL DEFAULT '',
+  `content` text,
   KEY `id` (`id`),
   KEY `used` (`used`)
-)ENGINE=MyISAM
-CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `ss_system_users`;
 
-CREATE TABLE `ss_system_users` (
-  `id` INTEGER(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `username` VARCHAR(30) COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `password` VARCHAR(32) COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `added` INTEGER(10) UNSIGNED NOT NULL DEFAULT '0',
-  `modified` INTEGER(10) UNSIGNED DEFAULT NULL,
-  `last_visited` INTEGER(10) UNSIGNED DEFAULT NULL,
+
+# Dump of table system_users
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `system_users`;
+
+CREATE TABLE `system_users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(30) NOT NULL DEFAULT '',
+  `password` varchar(32) NOT NULL DEFAULT '',
+  `added` int(10) unsigned NOT NULL DEFAULT '0',
+  `modified` int(10) unsigned DEFAULT NULL,
+  `last_visited` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `user` (`username`, `password`)
-)ENGINE=MyISAM
-AUTO_INCREMENT=385 CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+  KEY `user` (`username`,`password`)
+) ENGINE=InnoDB AUTO_INCREMENT=399 DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `ss_system_warnings`;
 
-CREATE TABLE `ss_system_warnings` (
-  `warn_id` INTEGER(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `warn_date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `system_id` VARCHAR(20) COLLATE utf8_general_ci DEFAULT NULL,
-  `vis_ip` VARCHAR(15) COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `warn_message` MEDIUMTEXT NOT NULL,
-  `warn_extended` MEDIUMTEXT,
-  `critical` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+
+# Dump of table system_warnings
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `system_warnings`;
+
+CREATE TABLE `system_warnings` (
+  `warn_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `warn_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `system_id` varchar(20) DEFAULT NULL,
+  `vis_ip` varchar(15) NOT NULL DEFAULT '',
+  `warn_message` mediumtext NOT NULL,
+  `warn_extended` mediumtext,
+  `critical` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`warn_id`),
   KEY `warn_date` (`warn_date`),
   KEY `vis_ip` (`vis_ip`)
-)ENGINE=MyISAM
-AUTO_INCREMENT=5450778 CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `ss_system_warnings_tags`;
 
-CREATE TABLE `ss_system_warnings_tags` (
-  `warn_id` INTEGER(10) UNSIGNED NOT NULL DEFAULT '0',
-  `tag` VARCHAR(20) COLLATE utf8_general_ci NOT NULL DEFAULT '',
+
+# Dump of table system_warnings_tags
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `system_warnings_tags`;
+
+CREATE TABLE `system_warnings_tags` (
+  `warn_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `tag` varchar(20) NOT NULL DEFAULT '',
   KEY `warn_id` (`warn_id`),
-  KEY `tag` (`tag`)
-)ENGINE=MyISAM
-CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+  KEY `tag` (`tag`),
+  CONSTRAINT `system_warnings_tags_ibfk_1` FOREIGN KEY (`warn_id`) REFERENCES `system_warnings` (`warn_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+
+
+
+
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

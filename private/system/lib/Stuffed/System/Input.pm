@@ -135,8 +135,8 @@ sub __get_query {
 	if (@ARGV) {
 		foreach my $item (@ARGV) {
 			my ($name, $value) = $item =~ /^--(.+?)(?:=(.+))?$/;
-     		$value =~ s/^['"]+//; $value =~ s/['"]+$//;
-     		next if false($name);
+			$value =~ s/^['"]+//; $value =~ s/['"]+$//;
+			next if false($name);
 
 			# parameter without a value is ok if it is specified via the command line, in this case
 			# we set a default value of 1 for it (thanks go out to Eugene) 
