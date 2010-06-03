@@ -717,13 +717,15 @@ sub __log_error {
 # 1st - specifies the die message
 
 sub __just_die {
+	CORE::die(@_) if CGI::Carp::ineval();
+	
 	my $message = shift;
 	my $in = {
 		kind_of => undef, # optional, the message will be logged, but process will not die
 		@_
 	  };
 	my $config = $system->config;
-
+	
 	my $trace;
 
 	my @stack;
@@ -733,43 +735,45 @@ sub __just_die {
 		$counter += 1;
 	}
 
-	my $is_recursion;
+	# cutting out everything before the main system eval from the stack
+	if ($ENV{STUFFED_STACK_START}) {
+		@stack = reverse @stack;
+		splice(@stack, 0, $ENV{STUFFED_STACK_START});
+		@stack = reverse @stack;
+	}
+
+	my $message_line_info;
 
 	for (my $i = 0; $i < scalar @stack; $i++) {
 		my $frame = $stack[$i];
 		my $sub = ($stack[$i+1] ? $stack[$i+1][3].'()' : 'main()');
 		my $file = __clean_file_for_log($frame->[1]);
 
-       # skipping CGI::Carp routines as they always repeat since our die handler
-       # works through the CGI::Carp's handler
-		if ($sub eq "CGI::Carp::die()" or $sub eq "CGI::Carp::fatalsToBrowser()") {
-			next;
-		}
+		# skipping CGI::Carp routines as they always repeat since our die handler
+		# works through the CGI::Carp's handler
+		next if $sub eq "CGI::Carp::die()";
 
 		if ($sub eq "Stuffed::System::Error::__just_die()") {
-			$is_recursion = 1;
+			# mod_perl 2.0
+			if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
+				ModPerl::Util::exit();
+			}
+	
+			# mod_perl 1.0
+			elsif ($ENV{MOD_PERL}) {
+				Apache::exit();
+			}
+	
+			else {
+				CORE::exit();
+			}
 		}
+
+		$message_line_info = " at $file line $frame->[2]." if false $message_line_info;
 
 		$trace .= "-- $sub, $file line $frame->[2];\n";
 	}
-
-	if ($is_recursion) {
-
-		# mod_perl 2.0
-		if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
-			ModPerl::Util::exit();
-		}
-
-		# mod_perl 1.0
-		elsif ($ENV{MOD_PERL}) {
-			Apache::exit();
-		}
-
-		else {
-			CORE::exit();
-		}
-	}
-
+	
   # ============================================================================
   # additional logic if this is a DBI error
 
@@ -806,6 +810,8 @@ sub __just_die {
 		my $HTML;
 
 		if ($config and $config->get('display_errors')) {
+			$message .= $message_line_info if $message !~ /\n$/;
+			
 			if ($system->out->context('ajax')) {
 				$HTML = <<HTML;
 <div><strong>System error has just occured:</strong></div>
@@ -844,13 +850,12 @@ HTML
 		
 		if ($system->out->context('iframe')) {
 			require Stuffed::System::Utils;
+			# IE will not give us access via JS to the iFrame with a status 500 document, so we use this hack instead
 			$HTML = '<textarea is_error="1">'.Stuffed::System::Utils::encode_html($HTML).'</textarea>';
+			$system->out->say($HTML);
 		} else {
-			# IE will not give us access via JS to the iFrame with a status 500 document
-			$system->out->header(Status => '500 Internal Server Error');
+			$system->out->error_500($HTML);
 		}
-		
-		$system->out->say($HTML);
 	} else {
 		print $message;
 	}

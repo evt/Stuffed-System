@@ -161,7 +161,7 @@ sub __init {
 	# config.
 	require Stuffed::System::Error;
 	$self->{error} = Stuffed::System::Error->new;
-	CGI::Carp::set_message(\&Stuffed::System::Error::__just_die);
+	CGI::Carp::set_die_handler(\&Stuffed::System::Error::__just_die);
 
 	# loading system configuration
 	require Stuffed::System::Config;

@@ -24,14 +24,7 @@
 
 use strict;
 
-# CGI::Carp will be initialized lower, just before the require of Stuffed::System
-# Good: We will include our own CGI::Carp version from private/system/lib, which
-#       doesn't output an extra content-type header.
-# Bad: Until that point is reached in the execution all errors are not printed in
-#      the browser (for debugging such cases, the line below could be temporary
-#      uncommented).
-
-# use CGI::Carp qw(fatalsToBrowser);
+use CGI::Carp qw(fatalsToBrowser);
 
 # not sure which perl version is the minimal now (could be 5.10 for all I know)
 # require 5.005_03;
@@ -72,14 +65,10 @@ $sys_path = $pkg_path if not defined $sys_path;
 
 unshift @INC, $pkg_path, "$sys_path/private/system/lib";
 
-# doing this here to load our own version of CGI::Carp from the Stuffed System's
-# lib directory (it doesn't output extra content-type header, which is important
-# for us because our die handler does this on its own)
-require CGI::Carp;
-CGI::Carp->import('fatalsToBrowser');
+$ENV{STUFFED_STACK_START} += 1 while caller($ENV{STUFFED_STACK_START} || 0);
 
 require Stuffed::System;
 my $system = Stuffed::System->new($sys_path, $pkg_path);
-$system->run->stop;
+$system->run->stop;	
 
 1;

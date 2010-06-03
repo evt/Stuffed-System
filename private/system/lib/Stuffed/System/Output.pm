@@ -67,6 +67,18 @@ sub new {
 		$p3p_header .= q( CP=") . $config->get('p3p_compact_policy') . q(");
 		$self->header(P3P => $p3p_header) if $p3p_header;
 	}
+	
+	if ($ENV{MOD_PERL}) {
+		# mod_perl 2.0
+		if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
+			$self->{__apache_response} = Apache2::RequestUtil->request;
+		}
+	
+		# mod_perl 1.0
+		else {
+			$self->{__apache_response} = Apache->request;
+		}
+	}
 
 	return $self;
 }
@@ -82,7 +94,13 @@ sub say {
 
 	# eval is required to prevent "Connection reset" errors under mod_perl which
 	# occur when a client aborts the connection (during print I guess)
-	eval {
+	if ($self->__apache_response) {
+		eval {
+			$self->__apache_response->print(@content)
+		}
+	}
+	
+	else {
 		print @content;
 	};
 }
@@ -154,7 +172,7 @@ sub __print_header {
 		}
 
 		if ($in->{redirect}) {
-			$self->header('Status' => 301) if $in->{permanent_redirect};
+			$self->header('Status' => $in->{permanent_redirect} ? '301 Moved Permanently' : '302 Found');
 			$self->header('Location' => $in->{redirect});
 		} else {
 			# content-type not specified, setting the default text/html content-type
@@ -185,7 +203,7 @@ sub __print_header {
 		my $headers = '';
 		my $status;
 		foreach my $name ($self->header) {
-			if ($name =~ /^status$/i) {
+			if (lc($name) eq 'status') {
 				$status = {name => $name, value => $self->header($name)};
 				next;
 			}
@@ -195,21 +213,13 @@ sub __print_header {
 		}
 
 		# mod_perl 1 or 2
-		if ($ENV{MOD_PERL}) {
-			my $r;
-
-			# mod_perl 2.0
-			if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
-				$r = Apache2::RequestUtil->request;
+		if ($self->__apache_response) {
+			if ($status) {
+				my ($status_code) = $status->{value} =~ /^(\d+)/;
+				$self->__apache_response->status($status_code);
 			}
-
-			# mod_perl 1.0
-			else {
-				$r = Apache->request;
-			}
-
-			$r->status_line($status->{value}) if $status;
-			$r->send_cgi_header("$headers\n");
+			
+			$self->__apache_response->send_cgi_header("$headers\n");
 		}
 
 		# cgi
@@ -381,6 +391,8 @@ sub __expires {
 		$wday[$wday],$mday,$mon[$mon],$year,$hour,$min,$sec);
 }
 
+sub __apache_response { $_[0]->{__apache_response} }
+
 sub error_404 {
 	my $self = shift;
 	
@@ -403,8 +415,22 @@ sub error_404 {
 HTML
 
 	$self->header('Status' => '404 Not Found');
-	$self->say($HTML);
+	$self->__apache_request ? $self->__apache_request->custom_response(404, $HTML) : $self->say($HTML);
+	$system->config->set(debug => 0);
+	$system->stop;
+}
 
+sub error_500 {
+	my $self = shift;
+	my $err_message = shift;	
+	
+	$self->header(Status => '500 Internal Server Error');
+	
+	if (true($err_message)) {
+		$self->__apache_response ? $self->__apache_response->custom_response(500, $err_message) : $self->say($err_message);	
+	}
+
+	$system->config->set(debug => 0);
 	$system->stop;
 }
 

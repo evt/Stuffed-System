@@ -35,8 +35,7 @@ our @EXPORT_OK = qw(&return_error &return_html &return_js &return_json &return_x
 sub return_error {
 	my $msg = shift;
 	my $options = {
-		fields		=> undef, # list of form fields that should be marked as containing errors
-		no_headers	=> undef,
+		fields	=> undef, # list of form fields that should be marked as containing errors
 		@_
 	};
 
@@ -44,17 +43,10 @@ sub return_error {
 		$options->{fields} = [$options->{fields}];
 	}
 
-	if (not $options->{no_headers}) {
-		# IE will not give us access via JS to the iFrame with a status 500 document 
-		if (not $system->out->context('iframe')) {
-			$system->out->header(Status => '500 Internal Server Error');	
-		}
-
-		if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR}) {
-			$system->out->header('Content-Type' => 'application/json');
-		} else {
-			$system->out->header('Content-Type' => 'text/html');
-		}
+	if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR}) {
+		$system->out->header('Content-Type' => 'application/json');
+	} else {
+		$system->out->header('Content-Type' => 'text/html');
 	}
 
 	if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR} || $system->out->context('iframe')) {
@@ -66,12 +58,16 @@ sub return_error {
 		$msg = Stuffed::System::Utils::convert_to_json($reply);
 	}
 
+	# IE will not give us access via JS to the iFrame with a status 500 document
 	if ($system->out->context('iframe')) {
 		require Stuffed::System::Utils;
 		$msg = '<textarea is_error="1">'.Stuffed::System::Utils::encode_html($msg).'</textarea>';
+		__say($msg);
+	} 
+	
+	else {
+		$system->out->error_500($msg);
 	}
-
-	__say($msg);
 }
 
 sub return_xml {

@@ -28,6 +28,7 @@ $VERSION = 1.00;
 use strict;
 
 use Stuffed::System;
+use Digest::MD5;
 
 sub __new {
 	my $class = shift;
@@ -41,47 +42,49 @@ sub __new {
 	my $name = $in->{name};
 	return undef if not $pkg or false($name);
 
-	my $pkg_path = $pkg->__path;
-	my $compile_action_if_it_exists = '';
-
-	if (-e "$pkg_path/$name.cgi") {
-		$compile_action_if_it_exists = "require \"$pkg_path/$name.cgi\";";
-	}
-
-	# action file doesn't exist, checking if any of the "public" templates exist for the action
-	else {
-		my $has_templates = undef;
-
-		opendir(DIR, $pkg->__skin->path);
-		while (my $file = readdir(DIR)) {
-			if ($file =~ /^\Q$name\E\./) {
-				$has_templates = 1;
-				last;
-			}
-		}
-		closedir(DIR);
-
-		$pkg->__missing_error(action_name => $name) if not $has_templates;
-	}
-
 	my $pkg_class = ref $pkg;
+	my $pkg_path = $pkg->__path;
+	my $action_file_path = "$pkg_path/$name.cgi"; 
 
-	require Stuffed::System::Utils;
-	my $base_class = $pkg_class.'::'.Stuffed::System::Utils::create_random(32);
-	
-	{
-		no strict 'refs';
-		while (defined %{ $base_class . '::' }) {
-			$base_class = $pkg_class.'::'.Stuffed::System::Utils::create_random(32);
-		}
-	}
-
+	# "b" is just a prefix which doesn't mean anything, we need the first character to be a letter in the package name
+	my $base_class = $pkg_class.'::b'.Digest::MD5::md5_hex($action_file_path);
 	my $action_class = $base_class.'::action';
 
-	eval <<CODE;
+	my $already_compiled = undef;
+	{
+		no strict 'refs';
+		$already_compiled = defined ${ $base_class.'::VERSION' };		
+	}
+
+	if (not $already_compiled) {
+		my $compile_action_if_it_exists = '';
+	
+		if (-e $action_file_path) {
+			$compile_action_if_it_exists = "require \"$action_file_path\";";
+		}
+	
+		# action file doesn't exist, checking if any of the "public" templates exist for the action
+		else {
+			my $has_templates = undef;
+	
+			opendir(DIR, $pkg->__skin->path);
+			while (my $file = readdir(DIR)) {
+				if ($file =~ /^\Q$name\E\./) {
+					$has_templates = 1;
+					last;
+				}
+			}
+			closedir(DIR);
+	
+			$pkg->__missing_error(action_name => $name) if not $has_templates;
+		}
+
+		eval <<CODE;
 package $base_class;
 use base 'Stuffed::System::Action';
 use Stuffed::System;
+
+our \$VERSION = '1.00';
 
 $compile_action_if_it_exists
 
@@ -89,7 +92,8 @@ package $action_class;
 use base 'Stuffed::System::Action';
 CODE
 
-	die $@ if $@;
+		die $@ if $@;
+	} 
 
 	my $self = bless({
 		__pkg			=> $pkg,
