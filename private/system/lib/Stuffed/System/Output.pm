@@ -71,12 +71,12 @@ sub new {
 	if ($ENV{MOD_PERL}) {
 		# mod_perl 2.0
 		if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
-			$self->{__apache_response} = Apache2::RequestUtil->request;
+			$self->{__apache_request} = Apache2::RequestUtil->request;
 		}
 	
 		# mod_perl 1.0
 		else {
-			$self->{__apache_response} = Apache->request;
+			$self->{__apache_request} = Apache->request;
 		}
 	}
 
@@ -94,9 +94,9 @@ sub say {
 
 	# eval is required to prevent "Connection reset" errors under mod_perl which
 	# occur when a client aborts the connection (during print I guess)
-	if ($self->__apache_response) {
+	if ($self->__apache_request) {
 		eval {
-			$self->__apache_response->print(@content)
+			$self->__apache_request->print(@content)
 		}
 	}
 	
@@ -213,13 +213,13 @@ sub __print_header {
 		}
 
 		# mod_perl 1 or 2
-		if ($self->__apache_response) {
+		if ($self->__apache_request) {
 			if ($status) {
 				my ($status_code) = $status->{value} =~ /^(\d+)/;
-				$self->__apache_response->status($status_code);
+				$self->__apache_request->status($status_code);
 			}
 			
-			$self->__apache_response->send_cgi_header("$headers\n");
+			$self->__apache_request->send_cgi_header("$headers\n");
 		}
 
 		# cgi
@@ -391,7 +391,7 @@ sub __expires {
 		$wday[$wday],$mday,$mon[$mon],$year,$hour,$min,$sec);
 }
 
-sub __apache_response { $_[0]->{__apache_response} }
+sub __apache_request { $_[0]->{__apache_request} }
 
 sub error_404 {
 	my $self = shift;
@@ -427,7 +427,7 @@ sub error_500 {
 	$self->header(Status => '500 Internal Server Error');
 	
 	if (true($err_message)) {
-		$self->__apache_response ? $self->__apache_response->custom_response(500, $err_message) : $self->say($err_message);	
+		$self->__apache_request ? $self->__apache_request->custom_response(500, $err_message) : $self->say($err_message);	
 	}
 
 	$system->config->set(debug => 0);
