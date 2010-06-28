@@ -142,6 +142,8 @@ sub __get_query {
 			# we set a default value of 1 for it (thanks go out to Eugene) 
 			$value = 1 if false($value);
 			
+			utf8::decode($value);
+			
 			# saving keys order
 			push @{$self->{query_order}}, $name if not exists $self->{query}{$name};
 
@@ -173,12 +175,12 @@ sub __get_query {
 	}
 
 	# multi-part formdata
-	if ($ENV{REQUEST_METHOD} and $ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_TYPE} and $ENV{CONTENT_TYPE} =~ /^multipart\/form-data/) {
+	if ($ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_TYPE} =~ /^multipart\/form-data/) {
 		$self->__parse_multipart;
 	}
 
 	# form submitted with post
-	if ($ENV{REQUEST_METHOD} and $ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_LENGTH}) {
+	if ($ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_LENGTH}) {
 		binmode STDIN;
 		read(STDIN, $self->{__stdin}, $ENV{CONTENT_LENGTH});
 		my ($result, $order) = $self->__parse_query($self->{__stdin});
@@ -584,6 +586,7 @@ sub __parse_multipart {
 		push @{$self->{query_order}}, $name if not $existing_idx{$name} and not exists $query->{$name};
 		
 		if ($name and true($part->{value}) and not $part->{filename}) {
+			utf8::decode($part->{value});
 			push @{$query->{$name}}, $part->{value};
 		}
 
