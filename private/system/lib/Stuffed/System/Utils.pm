@@ -30,7 +30,7 @@ use utf8;
 
 use base 'Exporter';
 our @EXPORT_OK = qw(
-	&decode_url &encode_url &addnl2br &br2nl &check_email &clone &convert_time
+	&decode_url &encode_url &addnl2br &br2nl &check_email &email_is_valid &clone &convert_time
 	&cp &create_dirs &create_random &decode_html &dump &encode_html &in_array
 	&match &name2url &nl2br &nl2space &parse_urls &produce_code &quote &get_ip
 	&prepare_float &encode_xml &decode_xml &match_strings &format_thousands
@@ -47,10 +47,12 @@ use Stuffed::System;
 sub decode_url {
 	my ($string) = @_;
 	return "" if not defined $string;
+	
 	$string =~ tr/+/ /;
 	$string =~ s/%([0-9a-fA-F]{2})/chr hex($1)/ge;
 	utf8::decode($string);
 	$string =~ s/\r\n/\n/g;
+	
 	return $string; 
 }
 
@@ -58,13 +60,9 @@ sub encode_url {
 	my ($string) = @_;
 	return "" if not defined $string;
 
-	#if (eval "require URI::Escape::XS") {
-	#	return URI::Escape::XS::uri_escape($string);
-	#}
-	#else {
+	utf8::encode($string);
 	$string =~ s/([^a-zA-Z0-9_.-])/uc sprintf("%%%02x",ord($1))/ge;
-
-	#}
+	
 	return $string;
 }
 
@@ -711,6 +709,8 @@ sub br2nl {
 	return wantarray ? @strings : $strings[0];
 }
 
+sub email_is_valid { check_email(@_) }
+
 sub check_email { ( $_[0] || return ) =~ /^[^\@\s,;]+\@[^\.\s,;]+\.[^\s,;]+$/ }
 
 =head1 clone
@@ -1261,8 +1261,8 @@ sub title_case {
 	my $string = shift;
 	return $string if false($string);
 
- # generating a unique string with 20 lower case letters, which we will use
- # to mark artifically inserted spaces, which we will need to cut out at the end
+	# generating a unique string with 20 lower case letters, which we will use
+	# to mark artifically inserted spaces, which we will need to cut out at the end
 	my $cut_id;
 	while ( not defined $cut_id or $string =~ /$cut_id/ ) {
 		$cut_id = create_random( 20, letters_lc => 1 );
