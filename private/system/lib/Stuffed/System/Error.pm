@@ -803,6 +803,8 @@ sub __just_die {
 
 	return if $in->{kind_of};
 
+	$message .= $message_line_info if $message !~ /\n$/;
+
 	if ($system->out->context('web')) {
 		$message =~ s/[\r\n]+$//;
 		$message =~ s/\n/<br>/sg;
@@ -810,8 +812,6 @@ sub __just_die {
 		my $HTML;
 
 		if ($config and $config->get('display_errors')) {
-			$message .= $message_line_info if $message !~ /\n$/;
-			
 			if ($system->out->context('ajax')) {
 				$HTML = <<HTML;
 <div><strong>System error has just occured:</strong></div>
