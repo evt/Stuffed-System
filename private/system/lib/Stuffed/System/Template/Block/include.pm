@@ -47,18 +47,18 @@ sub include {
 		@_
 	};
 	my $t = $self->{template};
-	my ($params, $content) = map { $in->{$_} } qw(params content);
+	my ($params, $content) = @$in{qw(params content)};
 	return if not $params;
 
 	my $pkg = $params->[1];
 	my $skin_id = $params->[2];
 	my $options_strings = $params->[3];
-
+	
 	my ($string, $all_flags_string, $quote_single_quotes, $tmpl_part);
 
 	my $file;
 	if ($params->[0] =~ "=") {
-		$options_strings = $params->[0];
+		$options_strings = $params->[0] . (true($options_strings) ? ' '.$options_strings : '');
 	} else {
 		$file = $t->compile(template => $params->[0], tag_start => '<', tag_end => '>', raw => 1);
 	}
@@ -73,7 +73,7 @@ sub include {
 		foreach my $option (@options) {
 			my ($name, $value) = $option =~ /^([^=]+)="([^"]+)"/;
 			$name = lc($name);
-
+			
 			if ($name eq 'set_flag') {
 				push @all_flags, $t->compile(template => $value, tag_start => '<', tag_end => '>', raw => 1);
 			}
