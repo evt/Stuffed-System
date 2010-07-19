@@ -160,8 +160,9 @@ sub __print_header {
 
 	if (not $self->{printed}) {
 		if ($self->{cookies}) {
-			foreach my $cookie (@{$self->{cookies}}) {
-				my $string = "$cookie->{name}=$cookie->{value};";
+			foreach my $name (keys %{ $self->{cookies} }) {
+				my $cookie = $self->{cookies}{$name};
+				my $string = "$name=$cookie->{value};";
 				$string .= " expires=$cookie->{expires};" if true($cookie->{expires});
 				$string .= " path=$cookie->{path};" if true($cookie->{path});
 				$string .= " domain=$cookie->{domain};" if true($cookie->{domain});
@@ -330,14 +331,13 @@ sub cookie {
 		$domain = '.'.$domain;
 	}
 
-	push @{$self->{cookies}}, {
-		name    => $self->{cookies_prefix} . $in->{name},
+	$self->{cookies}{ $self->{cookies_prefix} . $in->{name} } = {
 		value   => Stuffed::System::Utils::encode_url($in->{value}),
 		expires => $self->__expires($in->{expires}),
 		path    => (defined $in->{path} ? $in->{path} : $self->{cookies_path} ? $self->{cookies_path} : undef),
 		domain  => $domain,
 		secure  => (defined $in->{secure} ? $in->{secure} : $self->{cookies_secure} ? $self->{cookies_secure} : undef),
-	  };
+	 };
 }
 
 sub __expires {
