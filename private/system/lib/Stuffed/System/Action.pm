@@ -112,7 +112,7 @@ sub __template {
 
 	if (false($file)) {
 		my ($sub) = (caller(1))[3] =~ /::([^:]+)$/;;
-		$file = $self->{__name}.($sub eq 'default' ? '' : ".$sub").'.html';
+		$file = ($system->out->context('ajax') ? 'ajax/' : '') . $self->{__name} . ($sub eq 'default' ? '' : ".$sub") . '.html';
 	}
 
 	require Stuffed::System::Template;
