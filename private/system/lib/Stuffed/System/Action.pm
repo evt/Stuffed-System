@@ -116,7 +116,12 @@ sub __template {
 	}
 
 	require Stuffed::System::Template;
-	return Stuffed::System::Template->new(file => $file, pkg => $self->__pkg, @_);
+	return Stuffed::System::Template->new(
+		file	=> $file, 
+		pkg		=> $self->__pkg,
+		act		=> $self, 
+		@_
+	);
 }
 
 # official way to call a private sub in the action

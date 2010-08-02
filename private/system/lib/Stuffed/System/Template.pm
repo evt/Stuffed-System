@@ -23,9 +23,10 @@
 
 package Stuffed::System::Template;
 
-$VERSION = '1.34';
+$VERSION = '1.35';
 
 # History:
+# 1.35 -- part is a separate method now, parse will take vars from the template object now by default
 # 1.34 -- added support for intermediary units in blocks (primarily to support else and elsif in if blocks)
 # 1.33 -- added strip_tabs and strip_new_lines options
 # 1.32 -- renamed "$query." complex variable to "$q."
@@ -57,7 +58,8 @@ my $tag_end = '%>';
 sub new {
 	my $self = bless({}, shift);
 	my $in = {
-		pkg					=> undef, # pkg object
+		pkg					=> undef, # package object
+		act					=> undef, # optional, action object, will be used to get vars during parsing
 		file				=> undef, # template can be initialized either from a file
 		template			=> undef, # or from a plain piece of template
 		text				=> undef,
@@ -76,6 +78,7 @@ sub new {
 	return if not ref $in->{pkg};
 
 	$self->{pkg} = $in->{pkg};
+	$self->{act} = $in->{act};
 
 	if (true($in->{skin_id})) {
 		require Stuffed::System::Skin;
@@ -263,15 +266,36 @@ CODE
 	return $code;
 }
 
+sub part {
+	my $self = shift;
+	my $part = shift;
+	$self->{part} = true($part) ? $part : undef;
+	return $self; 	
+}
+
 sub parse {
-	# vars should be passed as a ref to 'HASH'
-	my ($self, $vars) = @_;
+	my $self = shift;
 	my $in = {
 		part => undef, # optional, parse this part of the template, not the main template
 		@_
-	  };
+	};
+
+	# vars should be passed as a ref to 'HASH'	
+	my $vars = shift;
+	
+	# if vars are not passed we try to grab them from "vars" key of the action object in the template object
+	if (not defined $vars and $self->{act}) {
+		$vars = $self->{act}{vars};
+	}
+	
 	my $part = $in->{part};
 
+	# if part was not specified in the parameters to parse, we try to grab it from the template object
+	$part = $self->{part} if false($part);
+	
+	# we always reset part during parsing if it was specified through the template object 
+	delete $self->{part};
+	
 	# we return plain text if plain text was loaded (property exists)
 	if (exists $self->{plain}) {
 		return (true($self->{plain}) ? $self->{plain} : '');
