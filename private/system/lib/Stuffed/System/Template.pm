@@ -275,14 +275,15 @@ sub part {
 
 sub parse {
 	my $self = shift;
-	my $in = {
-		part => undef, # optional, parse this part of the template, not the main template
-		@_
-	};
 
 	# vars should be passed as a ref to 'HASH'	
 	my $vars = shift;
-	
+
+	my $in = {
+		part	=> undef, # optional, parse the specified part of the template, not the main template
+		@_
+	};
+
 	# if vars are not passed we try to grab them from "vars" key of the action object in the template object
 	if (not defined $vars and $self->{act}) {
 		$vars = $self->{act}{vars};
