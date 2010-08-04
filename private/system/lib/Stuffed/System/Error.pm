@@ -721,7 +721,8 @@ sub __just_die {
 	
 	my $message = shift;
 	my $in = {
-		kind_of => undef, # optional, the message will be logged, but process will not die
+		kind_of 			=> undef, # optional, the message will be logged, but process will not die
+		skip_last_in_stack	=> undef, # optional, skip last entry in stack 
 		@_
 	  };
 	my $config = $system->config;
@@ -734,6 +735,8 @@ sub __just_die {
 		push @stack, \@frame;
 		$counter += 1;
 	}
+	
+	splice(@stack, 0, 1) if $in->{skip_last_in_stack};
 
 	# cutting out everything before the main system eval from the stack
 	if ($ENV{STUFFED_STACK_START}) {
