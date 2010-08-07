@@ -792,6 +792,15 @@ sub __just_die {
   # ============================================================================
 
 	my $add_message = '';
+	
+	if ($ENV{REQUEST_URI}) {
+		my $url = true($ENV{HTTP_HOST}) ? 'http'.($ENV{HTTPS} eq 'on' ? 's' : '').'://'.$ENV{HTTP_HOST} : '';
+		$url .= $ENV{REQUEST_URI}; 
+		
+		$add_message .= "\n" if $message !~ /\n$/;
+		$add_message .= "URL: $url\n";
+	}
+	
 	if ($ENV{HTTP_REFERER}) {
 		$add_message .= "\n" if $message !~ /\n$/;
 		$add_message .= "Referrer: $ENV{HTTP_REFERER}\n";
