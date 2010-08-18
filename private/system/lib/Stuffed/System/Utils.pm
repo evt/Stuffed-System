@@ -908,6 +908,7 @@ sub decode_html {
 		'&quot;'	=> '\"',
 		'&#39;'		=> '\'',
 		'&amp;'		=> '&',
+		'&nbsp;'	=> ' ',
 	);
 	for (grep { defined } @strings) {
 		s/(&lt;|&gt;|&quot;|&#39;|&amp;)/$html{$1}/go;
@@ -1349,22 +1350,21 @@ sub get_image_info {
 
 sub resize_image {
 	my $in = {
-		image_data => undef,  # required, binary image data
-		width      => undef,  # either width or height is required, target width of image
-		height     => undef,  # either width or height is required, target height of image
-		exact      => undef,  # optional flag, that will force the width and
-		                      # height specified, cropping the image if required
-		accept_formats =>
-		  undef,              # optional, array ref of file formats that should
-		                      # be accepted (jpeg, gif, etc)
+		image_data				=> undef, # required, binary image data
+		width					=> undef, # either width or height is required, target width of image
+		height					=> undef, # either width or height is required, target height of image
+		exact					=> undef, # optional flag, that will force the width and height specified, cropping the image if required
+		crop_vertical_at_top	=> undef, # optional, works along with 'exact' parameter, vertical images will be cropped at top instead of the middle
+		accept_formats			=> undef, # optional, array ref of file formats that should be accepted (jpeg, gif, etc) 
 		@_
 	};
-
-	my $image_data     = $in->{image_data};
-	my $width          = $in->{width};
-	my $height         = $in->{height};
-	my $exact          = $in->{exact};
+	my $image_data = $in->{image_data};
+	my $width = $in->{width};
+	my $height = $in->{height};
+	my $exact = $in->{exact};
+	my $crop_vertical_at_top = $in->{crop_vertical_at_top};
 	my $accept_formats = $in->{accept_formats};
+	
 	return undef if false($image_data) or (false($width) and false($height));
 
 	my ($image, $x, $y, $format, $usingMagick, $usingImager);
@@ -1455,19 +1455,27 @@ sub resize_image {
 	if ($exact and ( $x != $width || $y != $height )) {
 		if ($usingMagick) {
 			$geometry = $width . 'x' . $height;
+
+			# horizontal
 			if ( $x > $y ) {
 				my $x_offset = int( ( $x - $width ) / 2 );
 				$geometry .= '+' . $x_offset . '+0';
 			}
+			
+			# vertical
 			else {
-				my $y_offset = int( ( $y - $height ) / 2 );
+				my $y_offset = $crop_vertical_at_top ? 0 : int( ( $y - $height ) / 2 );
 				$geometry .= '+0+' . $y_offset;
 			}
 			
 			$image->Crop($geometry);	
 		} 
 		elsif ($usingImager) {
-			$image = $image->crop(width => $width, height => $height);
+			if ($crop_vertical_at_top and $x < $y) {
+				$image = $image->crop(left => 0, top => 0, width => $width, height => $height);
+			} else {
+				$image = $image->crop(width => $width, height => $height);	
+			}
 		}
 		
 	}
