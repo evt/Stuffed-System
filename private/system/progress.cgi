@@ -30,7 +30,7 @@ sub default {
 
 	my $upload_id = $ENV{HTTP_X_PROGRESS_ID};
 	if (false($upload_id)) {
-		return_error("Progress id is not specified, progress information is not available.");
+		$system->out->error("Progress id is not specified, progress information is not available.");
 	}
 
 	my $info = $system->in->get_upload_info(upload_id => $upload_id);
