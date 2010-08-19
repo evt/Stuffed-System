@@ -24,7 +24,6 @@
 use strict;
 
 use Stuffed::System;
-use Stuffed::System::Ajax qw(&return_html &return_error);
 
 sub default {
 	my $self = shift;
@@ -50,7 +49,7 @@ sub default {
 		$content = "new Object({ 'state' : 'starting' })";
 	}
 
-	return_html($content);
+	$system->out->html($content);
 }
 
 1;

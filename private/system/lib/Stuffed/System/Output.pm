@@ -434,4 +434,94 @@ sub error_500 {
 	$system->stop;
 }
 
+# ============================================================================
+# different ways to produce output, ajax-aware 
+
+sub error {
+	my $self = shift;
+	my $msg = shift;
+	my $options = {
+		fields	=> undef, # list of form fields that should be marked as containing errors
+		@_
+	};
+
+	if (true($options->{fields}) and not ref $options->{fields}) {
+		$options->{fields} = [$options->{fields}];
+	}
+
+	if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR}) {
+		$self->header('Content-Type' => 'application/json');
+	} else {
+		$self->header('Content-Type' => 'text/html');
+	}
+
+	if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR} || $self->context('iframe')) {
+		my $reply = {msg => $msg};
+		if (ref $options->{fields} and @{$options->{fields}}) {
+			$reply->{fields} = $options->{fields};
+		}
+		
+		$msg = Stuffed::System::Utils::convert_to_json($reply);
+	}
+
+	# IE will not give us access via JS to the iFrame with a status 500 document
+	if ($self->context('iframe')) {
+		require Stuffed::System::Utils;
+		$msg = '<textarea is_error="1">'.Stuffed::System::Utils::encode_html($msg).'</textarea>';
+		$self->__say_and_stop($msg);
+	} 
+	
+	else {
+		$self->error_500($msg);
+	}
+}
+
+sub xml {
+	my $self = shift;
+	$self->__say_and_stop(shift, 'text/xml');
+}
+
+sub html {
+	my $self = shift;
+	my $msg = shift;
+	
+	if ($self->context('iframe')) {
+		require Stuffed::System::Utils;
+		$msg = '<textarea>'.Stuffed::System::Utils::encode_html($msg).'</textarea>';
+	}
+	
+	$self->__say_and_stop($msg, 'text/html');
+}
+
+sub js {
+	my $self = shift;
+	$self->__say_and_stop(shift, 'application/x-javascript');
+}
+
+sub json {
+	my $self = shift;
+	my $hash = shift;
+
+	require Stuffed::System::Utils;
+	my $json = Stuffed::System::Utils::convert_to_json($hash);
+	
+	if ($self->context('iframe')) {
+		require Stuffed::System::Utils;
+		$json = '<textarea is_json="1">'.Stuffed::System::Utils::encode_html($json).'</textarea>';
+	} else {
+		$self->header('Content-Type' => 'application/json');		
+	}
+
+	$self->__say_and_stop($json);
+}
+
+sub __say_and_stop {
+	my $self = shift;
+	my ($content, $type) = @_;
+	$self->header('Content-Type' => $type) if true($type);
+	$self->say($content);
+	$system->config->set(debug => 0);
+	$system->stop;
+}
+
 1;
