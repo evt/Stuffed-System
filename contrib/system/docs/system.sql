@@ -39,9 +39,9 @@ DROP TABLE IF EXISTS `system_sessions`;
 
 CREATE TABLE `system_sessions` (
   `id` varchar(32) NOT NULL DEFAULT '',
-  `used` int(10) unsigned NOT NULL DEFAULT '0',
+  `used` int(11) unsigned NOT NULL DEFAULT '0',
   `signature` varchar(100) NOT NULL DEFAULT '',
-  `content` blob,
+  `content` text,
   KEY `id` (`id`),
   KEY `used` (`used`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -54,12 +54,12 @@ CREATE TABLE `system_sessions` (
 DROP TABLE IF EXISTS `system_users`;
 
 CREATE TABLE `system_users` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(30) NOT NULL DEFAULT '',
   `password` varchar(32) NOT NULL DEFAULT '',
-  `added` int(10) unsigned NOT NULL DEFAULT '0',
-  `modified` int(10) unsigned DEFAULT NULL,
-  `last_visited` int(10) unsigned DEFAULT NULL,
+  `added` int(11) unsigned NOT NULL DEFAULT '0',
+  `modified` int(11) unsigned DEFAULT NULL,
+  `last_visited` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user` (`username`,`password`)
 ) ENGINE=InnoDB AUTO_INCREMENT=399 DEFAULT CHARSET=utf8;
@@ -72,7 +72,7 @@ CREATE TABLE `system_users` (
 DROP TABLE IF EXISTS `system_warnings`;
 
 CREATE TABLE `system_warnings` (
-  `warn_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `warn_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `warn_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `system_id` varchar(20) DEFAULT NULL,
   `vis_ip` varchar(15) NOT NULL DEFAULT '',
@@ -92,7 +92,7 @@ CREATE TABLE `system_warnings` (
 DROP TABLE IF EXISTS `system_warnings_tags`;
 
 CREATE TABLE `system_warnings_tags` (
-  `warn_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `warn_id` int(11) unsigned NOT NULL DEFAULT '0',
   `tag` varchar(20) NOT NULL DEFAULT '',
   KEY `warn_id` (`warn_id`),
   KEY `tag` (`tag`),
