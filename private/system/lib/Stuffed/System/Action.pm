@@ -260,7 +260,8 @@ CODE
 	# we get here if sub was not declared as public in the action file or it is
 	# not defined in the action file, we now check if there is maybe a public
 	# template present for this sub in the skin
-	my $tmpl_file = $self->__name.($sub_name eq 'default' ? '' : ".$sub_name").'.html';
+	my $tmpl_file = ($system->out->context('ajax') ? 'ajax/' : '');
+	$tmpl_file .= $self->__name.($sub_name eq 'default' ? '' : ".$sub_name").'.html';
 	my $tmpl_path = $self->__pkg->__skin->path.'/'.$tmpl_file;
 
 	if (-e $tmpl_path) {
