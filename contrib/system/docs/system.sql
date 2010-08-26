@@ -41,7 +41,7 @@ CREATE TABLE `system_sessions` (
   `id` varchar(32) NOT NULL DEFAULT '',
   `used` int(11) unsigned NOT NULL DEFAULT '0',
   `signature` varchar(100) NOT NULL DEFAULT '',
-  `content` text,
+  `content` blob,
   KEY `id` (`id`),
   KEY `used` (`used`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
