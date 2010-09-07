@@ -1034,8 +1034,11 @@ sub name2url {
 	my $name = shift;
 	return '' if false($name);
 
-	# removing all charachters that are not letters, digits, points
-	$name =~ s/[^\w\.\d]/_/g;
+	# removing all charachters that are not letters, digits, points, underscores, spaces
+	$name =~ s/[^\w\.\d_\s]//g;
+	
+	# replacing multiple underscores and multiple spaces with one underscore
+	$name =~ s/[_\s]+/_/g;
 
 	# also forcing lower case
 	return lc($name);
