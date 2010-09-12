@@ -1035,10 +1035,10 @@ sub name2url {
 	return '' if false($name);
 
 	# removing all charachters that are not letters, digits, points, underscores, spaces
-	$name =~ s/[^\w\.\d_\s]//g;
+	$name =~ s/[^\w\.\d]+/_/g;
 	
-	# replacing multiple underscores and multiple spaces with one underscore
-	$name =~ s/[_\s]+/_/g;
+	# removing underscores in the beginning and end of the string
+	$name =~ s/^_+|_+$//g;
 
 	# also forcing lower case
 	return lc($name);

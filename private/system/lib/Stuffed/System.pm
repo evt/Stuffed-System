@@ -56,8 +56,8 @@ sub new {
 		my $events = $system->stash('__disabled_events');
 		$events->{system}{__all} = 1;
 		$system->stash(__disabled_events => $events);
-
-		$system->pkg('system')->stopped;
+		
+		$system->pkg('system')->stopped->default;
 		$system->stop;
 	}
 
@@ -196,7 +196,7 @@ sub __dispatch {
 	# /action/, /action/sub.html 
 	# /system/, /system/action/, /system/action/sub.html
 	
-	if  ($path =~ m|^system/?([^/]+)?/?(?:([^/]+)?\.html)?$|) {
+	if ($path =~ m|^system/?([^/]+)?/?(?:([^/]+)?\.html)?$|) {
 		my ($act, $sub) = ($1, $2);
 		$q->__pkg('system');
 		$q->__act($act) if true($act);
