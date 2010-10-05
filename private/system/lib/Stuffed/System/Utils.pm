@@ -40,6 +40,7 @@ our @EXPORT_OK = qw(
 	&get_hash_cookie &set_hash_cookie &discover_functions &html_entities
 	&get_url_param &convert_from_json &convert_to_json &get_guest_country_code
 	&extract_paths_from_html &merge_files_together &plural_ru &get_image_info
+	&use_an_prefix
 );
 
 use Stuffed::System;
@@ -625,7 +626,7 @@ sub time_elapsed {
 			   @_
 	};
 	my $no_secs = $in->{no_secs};
-	if ( not $elapsed ) {
+	if ( not $elapsed or $elapsed < 1 ) {
 		return ( $no_secs ? '0 mins' : '0 secs' );
 	}
 
@@ -1727,8 +1728,6 @@ sub set_hash_cookie {
 	return 1;
 }
 
-# =======================================================================
-
 sub get_number_suffix {
 	my $n = shift;
 	return '' if not $n or $n =~ /\D/;
@@ -1740,15 +1739,11 @@ sub get_number_suffix {
 	return 'th';
 }
 
-# =======================================================================
-
 sub convert_from_json {
 	my $json = shift;
 	require JSON;
 	return JSON->new->decode($json);
 }
-
-# =======================================================================
 
 sub convert_to_json {
 	my $ref = shift;
@@ -1757,6 +1752,14 @@ sub convert_to_json {
 	return JSON->new->allow_blessed->convert_blessed->encode($ref);
 }
 
-# =======================================================================
+sub use_an_prefix {
+	my $string = shift;
+	return undef if false($string);
+	
+	my %vowel_idx = map { $_ => 1 } qw(a e i o u);
+	$string =~ s/^\W+//;
+	
+	return $vowel_idx{ lc( substr($string, 0, 1) ) };
+}
 
 1;
