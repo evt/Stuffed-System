@@ -717,8 +717,6 @@ sub __log_error {
 # 1st - specifies the die message
 
 sub __just_die {
-	CORE::die(@_) if CGI::Carp::ineval();
-	
 	my $message = shift;
 	my $in = {
 		kind_of 			=> undef, # optional, the message will be logged, but process will not die
@@ -776,9 +774,15 @@ sub __just_die {
 
 		$trace .= "-- $sub, $file line $frame->[2];\n";
 	}
-	
-  # ============================================================================
-  # additional logic if this is a DBI error
+
+	# ============================================================================	
+
+	if ( CGI::Carp::ineval() ) {
+		CORE::die( $message . ($message !~ /\n$/ ? $message_line_info . "\n" : '' ) );		
+	}
+
+	# ============================================================================
+	# additional logic if this is a DBI error
 
 	my $database_info = '';
 
@@ -789,7 +793,7 @@ sub __just_die {
 		}
 	}
 
-  # ============================================================================
+	# ============================================================================
 
 	my $add_message = '';
 	
@@ -810,6 +814,8 @@ sub __just_die {
 		$add_message .= "\n" if false($add_message) and $message !~ /\n$/;
 		$add_message .= "Stack trace:\n".$trace;
 	}
+
+	# ============================================================================
 
 	__log_error($database_info.$message.$add_message);
 
