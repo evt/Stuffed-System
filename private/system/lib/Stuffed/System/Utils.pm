@@ -622,13 +622,15 @@ provided seconds.
 sub time_elapsed {
 	my $elapsed = shift;
 	my $in = {
-			   no_secs => undef,
-			   @_
+		no_secs => undef,
+		short	=> undef,
+		@_
 	};
-	my $no_secs = $in->{no_secs};
+	my ($no_secs, $short) = @$in{qw(no_secs short)};
 	if ( not $elapsed or $elapsed < 1 ) {
 		return ( $no_secs ? '0 mins' : '0 secs' );
 	}
+	
 
 	my $hours = int( $elapsed / 60 / 60 );
 	my $mins  = int( $elapsed / 60 ) - $hours * 60;
@@ -651,6 +653,12 @@ sub time_elapsed {
 
 	if ( $no_secs and false($msg) ) {
 		$msg = '0 mins';
+	}
+	
+	if ($short) {
+		$msg =~ s/\shours?/h/;
+		$msg =~ s/\smins?/m/;
+		$msg =~ s/\ssecs?/s/;
 	}
 
 	return $msg;
