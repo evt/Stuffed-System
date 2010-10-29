@@ -352,23 +352,24 @@ sub AUTOLOAD {
 		die "[$action_name] ".$@ if $@;
 		return $self->$action_name();
 	}
-
+	
 	eval <<CODE;
 package $class;
 
 use Stuffed::System::Action; 
 
 sub $action_name {
-  return Stuffed::System::Action->__new(
-    pkg   => shift, 
-    name  => '$action_name',
-  );
+	my \$self = shift;
+	\$self->__check_privs('$action_name');
+	return Stuffed::System::Action->__new(
+		pkg		=> \$self, 
+		name	=> '$action_name',
+	);
 }
 CODE
 
 	die "[$action_name] ".$@ if $@;
 
-	$self->__check_privs($action_name);
 	return $self->$action_name(@_);
 }
 
