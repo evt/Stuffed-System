@@ -795,29 +795,27 @@ sub __just_die {
 
 	# ============================================================================
 
-	my $add_message = '';
+	my @add_message;
 	
 	if ($ENV{REQUEST_URI}) {
 		my $url = true($ENV{HTTP_HOST}) ? 'http'.($ENV{HTTPS} eq 'on' ? 's' : '').'://'.$ENV{HTTP_HOST} : '';
 		$url .= $ENV{REQUEST_URI}; 
-		
-		$add_message .= "\n" if $message !~ /\n$/;
-		$add_message .= "URL: $url\n";
+		push @add_message, "URL: $url";
 	}
 	
 	if ($ENV{HTTP_REFERER}) {
-		$add_message .= "\n" if $message !~ /\n$/;
-		$add_message .= "Referrer: $ENV{HTTP_REFERER}\n";
+		push @add_message, "Referrer: $ENV{HTTP_REFERER}";
 	}
 
 	if (true($trace)) {
-		$add_message .= "\n" if false($add_message) and $message !~ /\n$/;
-		$add_message .= "Stack trace:\n".$trace;
+		push @add_message, "Stack trace:\n$trace";
 	}
 
 	# ============================================================================
 
-	__log_error($database_info.$message.$add_message);
+	__log_error(
+		$database_info . $message . ( @add_message ? "\n" . join("\n", @add_message) : '' )
+	);
 
 	return if $in->{kind_of};
 
