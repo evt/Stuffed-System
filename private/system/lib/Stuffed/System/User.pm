@@ -39,11 +39,11 @@ sub new {
 sub authorize {
 	my $self = shift;
 	my $params = {
-		username       => undef,
-		password       => undef,
-		pass_encrypted => undef, # optional, tells that a specified password
+		username		=> undef,
+		password		=> undef,
+		pass_encrypted	=> undef, # optional, tells that a specified password
 		# is encrypted
-		remember_login => undef, # remember username and password in the cookie
+		remember_login	=> undef, # remember username and password in the cookie
 		@_
 	  };
 
@@ -253,14 +253,22 @@ sub is_robot {
 	my $self = shift;
 	if (not exists $self->{is_robot}) {
 		if ($ENV{HTTP_USER_AGENT}) {
-			require HTTP::BrowserDetect;
-			$self->{is_robot} = HTTP::BrowserDetect->new->robot || 0;
+			$self->{is_robot} = $self->browser->robot || 0;
 		}
 		else {
 			$self->{is_robot} = 1;
 		}
 	}
 	return $self->{is_robot};
+}
+
+sub browser {
+	my $self = shift;
+	if (not $self->{browser_detect}) {
+		require HTTP::BrowserDetect;
+		$self->{browser_detect} = HTTP::BrowserDetect->new;
+	}	
+	return $self->{browser_detect}; 
 }
 
 1;
