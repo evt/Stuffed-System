@@ -205,12 +205,14 @@ sub __smtp {
 	chomp($_ = <S>);
 	return fail("HELO error ($_)") if /^[45]/ or !$_;
 
-	print S "mail from: <$self->{from}>\015\012";
+	my $from = $self->{from} =~ /</ ? $self->{from} : "<$self->{from}>";
+	print S "mail from: $from\015\012";
 	chomp($_ = <S>);
 	return fail("mail From: error ($_)") if /^[45]/ or !$_;
 
 	foreach my $to (@{$self->{to}}) {
-		print S "rcpt to: <$to>\015\012";
+		my $_to = $to =~ /</ ? $to : "<$to>";
+		print S "rcpt to: $_to\015\012";
 		chomp($_ = <S>);
 		return fail("Error sending to <$to> ($_)\n") if /^[45]/ or !$_;
 	}
@@ -458,7 +460,17 @@ sub send_with_embed_images {
 	
 	my $msg = Mail::Message->build(%$data);
 	
-	eval {$msg->send};
+	if ($self->{mail_system} eq 'smtp') {
+		$msg->send(
+			via			=> 'smtp',
+			hostname	=> $self->{smtp_server},
+			port		=> $self->{smtp_port},
+		)
+	}
+	else {
+		$msg->send;
+	}
+
 
 	return 1;
 }
