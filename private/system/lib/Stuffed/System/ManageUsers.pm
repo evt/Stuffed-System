@@ -99,18 +99,21 @@ having supplied_password = password
 
 sub refresh_user {
 	my $in = {
-		id => undef,
+		id	=> undef,
+		ip	=> undef,
 		@_
 	  };
-	my $id = $in->{id};
+	my ($id, $ip) = @$in{qw(id ip)};
 	return undef if not $id or $id =~ /\D/;
 
 	my $pre = $system->config->get('db_prefix');
 
 	my $sth = $system->dbh->prepare("
-update ${pre}system_users set last_visited = ? where id = ?
+update ${pre}system_users 
+set last_visited = ?, last_used_ip = ?
+where id = ?
 	");
-	$sth->execute(time(), $id);
+	$sth->execute(time(), $ip, $id);
 	$sth->finish;
 
 	return 1;

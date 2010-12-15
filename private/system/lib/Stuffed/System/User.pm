@@ -152,7 +152,10 @@ sub login {
 
 	# updating last_visited time
 	require Stuffed::System::ManageUsers;
-	Stuffed::System::ManageUsers::refresh_user(id => $profile->{id});
+	Stuffed::System::ManageUsers::refresh_user(
+		id	=> $profile->{id},
+		ip	=> $self->ip,
+	);
 
 	my $session = $system->session;
 

@@ -60,10 +60,10 @@ CREATE TABLE `system_users` (
   `added` int(11) unsigned NOT NULL DEFAULT '0',
   `modified` int(11) unsigned DEFAULT NULL,
   `last_visited` int(11) unsigned DEFAULT NULL,
+  `last_used_ip` varchar(15) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user` (`username`,`password`)
-) ENGINE=InnoDB AUTO_INCREMENT=399 DEFAULT CHARSET=utf8;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 # Dump of table system_warnings
