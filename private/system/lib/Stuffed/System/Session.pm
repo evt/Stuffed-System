@@ -108,8 +108,12 @@ sub add {
 	return if not %$data;
 
 	$self->__create_session if not $self->is_valid;
-	$self->{content}{$_} = $data->{$_} foreach keys %$data;
 
+	require Storable;
+	for my $key (keys %$data) {
+		$self->{content}{$key} = ref $data->{$key} ? Storable::dclone( $data->{$key} ) : $data->{$key};	
+	}
+	
 	return $self->__update_session;
 }
 
