@@ -37,8 +37,8 @@ use Stuffed::System;
 sub new {
 	my $class = shift;
 	my $self = bless({
-			__persistent_tags => {}
-		}, $class);
+		__persistent_tags => {}
+	}, $class);
 	return $self;
 }
 
@@ -587,10 +587,85 @@ sub warn {
 	$self->__log_warning($message, @_);
 }
 
-# ============================================================================
-# Group: Internal functions, not meant to be used outside this package
+# Method: log
 
-# Function: __log_warning
+sub log {
+	my $self = shift;
+	my $in = {
+		msg			=> undef, # text of the error message to log
+		fields		=> undef, # optional ARRAY ref of form fields related to the error message
+		stack		=> undef, # call stack (could be slightly changed from the actual one in a die handler, so it is passed as a param)
+		is_critical	=> undef, # critical flag for the error (such as coming from a die handler)
+		@_
+	};
+	my ($msg, $fields, $stack, $is_critical) = @$in{qw(msg fields stack is_critical)};
+	
+	my $config = $system->config;
+	
+	# logging error in all errors log if log_all_errors option is on in config
+	return undef if not $config or not $config->get('log_all_errors');
+	
+	# no new lines are allowed in the message, as all of the message and additional information should be on one line in the log
+	$msg =~ s/[\r\n]+/ /g;
+	
+	# turning multiple spaces into one
+	$msg =~ s/\s+/ /g;
+	
+	# kill spaces in the beginning and the end of the message
+	$msg =~ s/^\s+|\s+$//g;
+	
+	my $stack_line = '';
+	
+	if (ref $stack eq 'ARRAY' and @$stack) {
+		my $frame = $stack->[0];
+		my $sub = ( $stack->[1] ? $stack->[1][3] . '()' : 'main()' );
+		my $file = __clean_file_for_log( $frame->[1] );
+		$stack_line = "$sub, $file line $frame->[2]";	
+	}
+	
+	require Stuffed::System::Utils;
+	my $ip = Stuffed::System::Utils::get_ip();
+
+	my $url = '';
+
+	if ($ENV{REQUEST_URI}) {
+		$url = true($ENV{HTTP_HOST}) ? 'http'.($ENV{HTTPS} eq 'on' ? 's' : '').'://'.$ENV{HTTP_HOST} : '';
+		$url .= $ENV{REQUEST_URI}; 
+	}
+	
+	my $referrer = $ENV{HTTP_REFERER} || '';
+	
+	my $filename = $config->get('all_errors_file');
+
+	# relative path, we add system path in front
+	if (true($filename) and $filename !~ /^\//) {
+		$filename = $system->path . '/' . $filename
+	}
+
+	# file not specified, using default file name and location
+	elsif (false($filename)) {
+		$filename = $system->path . '/private/.ht_errors.all.log';
+	}
+	
+	my $content = '[' . localtime() . '] ' . $ip;
+	$content .= ' [C]' if $is_critical;
+	$content .= ' "' . $msg . '"';
+	$content .= ' "' . ( ref $fields eq 'ARRAY' and @$fields ? join(', ', @$fields) : '' ) . '"';
+	$content .= ' "' . $stack_line . '"';
+	$content .= ' "' . $url . '"';
+	$content .= ' "' . $referrer . '"';
+	
+	__append_to_file(
+		filename	=> $filename,
+		content		=> $content,   
+	);
+		
+}
+
+# ============================================================================
+# Group: Internal functions and methods, not meant to be used outside this package
+
+# Method: __log_warning
 #
 # Logs a warning to a db table if this option is swtiched on in system config,
 # otherwise calles a __log_error.
@@ -622,7 +697,7 @@ sub __log_warning {
 	}
 
 	my $config = $system->config;
-	return undef if not $config or not $config->get('log_errors');
+	return undef if not $config or not $config->get('log_warnings');
 
 	if ($config->get('warnings_to_db')) {
 		require Stuffed::System::Utils;
@@ -661,10 +736,28 @@ set warn_id = ?, tag = ?
 	}
 }
 
+sub __append_to_file {
+	my $in = {
+		filename	=> undef,
+		content		=> undef,
+		@_
+	};
+	my ($filename, $content) = @$in{qw(filename content)};
+	return undef if false($filename) or false($content);
+	
+	return undef if not open(LOG, '>> '.$filename);
+
+	flock LOG, 2 | 4;
+	print LOG $content . "\n";
+	flock LOG, 8;
+	
+	close(LOG);
+}
+
 # Function: __log_error
 #
 # Tries to log a specified error to the Stuffed System error log (if logging
-# is switched on). The location of the log file is taken from "errors_file"
+# is switched on). The location of the log file is taken from "critical_errors_file"
 # parameters in system config. If it is not specified the default location
 # is used: "private/.ht_errors.log".
 #
@@ -677,32 +770,31 @@ sub __log_error {
 	return undef if false($message);
 
 	my $config = $system->config;
-
+	
 	# logging error in the system error log if log_errors option is on in config
-	if ($config and $config->get('log_errors')) {
-		my $file = $config->get('errors_file');
+	return undef if not $config or not $config->get('log_critical_errors'); 
 
-		# relative path, we add system path in fron
-		if (true($file) and $file !~ /^\//) {
-			$file = $system->path.'/'.$file
-		}
+	my $filename = $config->get('critical_errors_file');
 
-		# file not specified, using default file name and location
-		elsif (false($file)) {
-			$file = $system->path.'/private/.ht_errors.log';
-		}
-
-		if (open(LOG, '>> '.$file)) {
-			require Stuffed::System::Utils;
-			my $ip = Stuffed::System::Utils::get_ip();
-
-			flock LOG, 2 | 4;
-			chomp(my $log_message = $message);
-			print LOG '['.scalar localtime()." - $ip] $log_message\n\n";
-			flock LOG, 8;
-			close(LOG);
-		}
+	# relative path, we add system path in front
+	if (true($filename) and $filename !~ /^\//) {
+		$filename = $system->path . '/' . $filename
 	}
+
+	# file not specified, using default file name and location
+	elsif (false($filename)) {
+		$filename = $system->path . '/private/.ht_errors.critical.log';
+	}
+
+	require Stuffed::System::Utils;
+	my $ip = Stuffed::System::Utils::get_ip();
+	
+	chomp(my $log_message = $message);
+	
+	__append_to_file(
+		filename	=> $filename,
+		content		=> '[' . scalar localtime() . " - $ip] $log_message\n",
+	); 	
 }
 
 # Function: __just_die
@@ -735,26 +827,24 @@ sub __just_die {
 	}
 	
 	splice(@stack, 0, 1) if $in->{skip_last_in_stack};
-
+	
 	# cutting out everything before the main system eval from the stack
 	if ($ENV{STUFFED_STACK_START}) {
 		@stack = reverse @stack;
 		splice(@stack, 0, $ENV{STUFFED_STACK_START});
 		@stack = reverse @stack;
 	}
-
-	my $message_line_info;
-
+	
+	# cleaning up a bit first
+	my @final_stack;
 	for (my $i = 0; $i < scalar @stack; $i++) {
-		my $frame = $stack[$i];
-		my $sub = ($stack[$i+1] ? $stack[$i+1][3].'()' : 'main()');
-		my $file = __clean_file_for_log($frame->[1]);
+		my $sub = ($stack[$i+1] ? $stack[$i+1][3] : '');
 
 		# skipping CGI::Carp routines as they always repeat since our die handler
 		# works through the CGI::Carp's handler
-		next if $sub eq "CGI::Carp::die()";
+		next if $sub eq 'CGI::Carp::die';
 
-		if ($sub eq "Stuffed::System::Error::__just_die()") {
+		if ($sub eq 'Stuffed::System::Error::__just_die') {
 			# mod_perl 2.0
 			if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
 				ModPerl::Util::exit();
@@ -769,6 +859,17 @@ sub __just_die {
 				CORE::exit();
 			}
 		}
+		
+		push @final_stack, $stack[$i];
+	}
+	@stack = @final_stack;
+
+	my $message_line_info;
+
+	for (my $i = 0; $i < scalar @stack; $i++) {
+		my $frame = $stack[$i];
+		my $sub = ($stack[$i+1] ? $stack[$i+1][3].'()' : 'main()');
+		my $file = __clean_file_for_log($frame->[1]);
 
 		$message_line_info = " at $file line $frame->[2]." if false $message_line_info;
 
@@ -792,6 +893,14 @@ sub __just_die {
 			$database_info .= '<read@'.$config->get('read_db_host').':'.$config->get('read_db_name').'> ';
 		}
 	}
+
+	# ============================================================================
+	
+	Stuffed::System::Error->new->log(
+		msg			=> $database_info . $message,
+		stack		=> \@stack,
+		is_critical	=> 1,
+	);
 
 	# ============================================================================
 
@@ -827,7 +936,7 @@ sub __just_die {
 
 		my $HTML;
 
-		if ($config and $config->get('display_errors')) {
+		if ($config and $config->get('display_critical_errors')) {
 			if ($system->out->context('ajax')) {
 				$HTML = <<HTML;
 <div><strong>System error has just occured:</strong></div>

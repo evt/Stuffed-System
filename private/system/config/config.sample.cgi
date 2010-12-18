@@ -22,7 +22,6 @@
 # ============================================================================
 
 $config->{debug} = '1';
-$config->{log_errors} = '0';
 $config->{default_pkg} = 'system';
 $config->{form_max_size} = 1048576*50; # 50 megs
 
@@ -58,13 +57,6 @@ $config->{db_user} = '';
 $config->{db_pass} = '';
 $config->{db_prefix} = ''; # ss_
 
-# package or action not found errors handling
-$config->{use_404} = '0';
-$config->{error_404_URL} = '';
-
-# save warnings in the errors log or in the db (ss_system_warnings)
-$config->{warnings_to_db} = '1';
-
 # the following ips are allowed to enable db debugging with __debug_db=1 URL parameter
 # (subnets are specified with *)
 $config->{allow_debug_db_ips} = [qw(127.0.0.1)];
@@ -90,13 +82,6 @@ $config->{system_stopped} = 0;
 # unique ID of the system (server), passed in the response as an HTTP header
 $config->{system_id} = 'local';
 
-# default name of the server errors log file, physical or relative to the system's root
-$config->{errors_file} = 'private/.ht_errors.log';
-
-# print out actual errors in the visitor's browser, otherwise only a generic 
-# message is displayed
-$config->{display_errors} = 1;
-
 # default charset for text/html content-type (IE, will give errors on "utf8" in the HTTP header of the Ajax response
 $config->{default_charset} = 'utf-8';
 
@@ -112,13 +97,43 @@ $config->{strip_tabs} = '1';
 # strip new line characters when the templates are compiled
 $config->{strip_new_lines} = '1';
 
+# location of svnversion utilty, part of subversion
+$config->{svnversion} = 'svnversion';
+
+# ============================================================================
+# error logging
+
+# enable logging of critical errors, critical errors happen when die is called or system dies on its own 
+$config->{log_critical_errors} = '0';
+
+# default name of the critical errors log file, physical or relative to the system's root
+$config->{critical_errors_file} = 'private/.ht_errors.critical.log';
+
+# print out actual critical errors in the visitor's browser, otherwise only a generic message is displayed
+$config->{display_critical_errors} = 1;
+
+# enable logging of all errors, critical and those displayed through an ->error method of Output.pm 
+$config->{log_all_errors} = '0';
+
+# default name of all errors log file, physical or relative to the system's root
+$config->{all_errors_file} = 'private/.ht_errors.all.log';
+
+# package or action not found errors handling
+$config->{use_404} = '0';
+$config->{error_404_URL} = '';
+
+# enable warnings logging, warnings are logged by explicitely calling ->warn from Error.pm in the code
+$config->{log_warnings} = '0';
+
+# save warnings in the errors log or in the db (ss_system_warnings)
+$config->{warnings_to_db} = '1';
+
 # log browser errors to a file, they are reported through the browser_error action
 $config->{log_browser_errors} = 1;
 
 # default name of the browser errors log file, physical or relative to the system's root
 $config->{browser_errors_file} = 'private/.ht_errors.browser.log';
 
-# location of svnversion utilty, part of subversion
-$config->{svnversion} = 'svnversion';
+# ============================================================================
 
 1;

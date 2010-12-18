@@ -243,8 +243,7 @@ sub redirect {
 	if (false($redirect)) {
 		$redirect = $system->config->get('cgi_url');
 	} elsif ($redirect =~ /^\?/) {
-
-    # adding cgi_url before the redirect string if redirect string starts with ?
+		# adding cgi_url before the redirect string if redirect string starts with ?
 		$redirect = $system->config->get('cgi_url').$redirect;
 	}
 
@@ -257,8 +256,8 @@ sub redirect {
 
 	$self->__print_header(redirect => $redirect, permanent_redirect => $in->{permanent});
 
- # always stopping the system after a redirect, if you want a different behaviou
- # use __print_header method as it is used above
+	# always stopping the system after a redirect, if you want a different behaviour
+	# use __print_header method as it is used above
 	$system->stop;
 }
 
@@ -326,18 +325,18 @@ sub cookie {
 		# cutting out www. (and other variations like ww.) in the begginning
 		($domain = $ENV{HTTP_HOST}) =~ s/^w+\.//;
 
-      # always adding wildcard dot in the beginning of the domain name if we set
-      # it here ourselves based on the HTTP_HOST
+		# always adding wildcard dot in the beginning of the domain name if we set
+		# it here ourselves based on the HTTP_HOST
 		$domain = '.'.$domain;
 	}
 
 	$self->{cookies}{ $self->{cookies_prefix} . $in->{name} } = {
-		value   => Stuffed::System::Utils::encode_url($in->{value}),
-		expires => $self->__expires($in->{expires}),
-		path    => (defined $in->{path} ? $in->{path} : $self->{cookies_path} ? $self->{cookies_path} : undef),
-		domain  => $domain,
-		secure  => (defined $in->{secure} ? $in->{secure} : $self->{cookies_secure} ? $self->{cookies_secure} : undef),
-	 };
+		value	=> Stuffed::System::Utils::encode_url($in->{value}),
+		expires	=> $self->__expires($in->{expires}),
+		path	=> (defined $in->{path} ? $in->{path} : $self->{cookies_path} ? $self->{cookies_path} : undef),
+		domain	=> $domain,
+		secure	=> (defined $in->{secure} ? $in->{secure} : $self->{cookies_secure} ? $self->{cookies_secure} : undef),
+	};
 }
 
 sub __expires {
@@ -448,6 +447,24 @@ sub error {
 	if (true($options->{fields}) and not ref $options->{fields}) {
 		$options->{fields} = [$options->{fields}];
 	}
+
+	# ============================================================================
+	# logging an error
+	
+	my @stack;
+	my $counter = 0;
+	while (my @frame = caller($counter)) {
+		push @stack, \@frame;
+		$counter += 1;
+	}
+
+	$system->error->log(
+		msg 	=> $msg,
+		fields	=> $options->{fields},
+		stack	=> \@stack,
+	);
+	
+	# ============================================================================
 
 	if ($ENV{HTTP_X_EXPECT_JSON_IN_ERROR}) {
 		$self->header('Content-Type' => 'application/json');
