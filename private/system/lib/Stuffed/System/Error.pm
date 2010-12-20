@@ -594,7 +594,7 @@ sub log {
 	my $in = {
 		msg			=> undef, # text of the error message to log
 		fields		=> undef, # optional ARRAY ref of form fields related to the error message
-		stack		=> undef, # call stack (could be slightly changed from the actual one in a die handler, so it is passed as a param)
+		stack		=> undef, # optional call stack (could be slightly changed from the actual one in a die handler, so it is passed as a param)
 		is_critical	=> undef, # critical flag for the error (such as coming from a die handler)
 		@_
 	};
@@ -616,12 +616,18 @@ sub log {
 	
 	my $stack_line = '';
 	
-	if (ref $stack eq 'ARRAY' and @$stack) {
-		my $frame = $stack->[0];
-		my $sub = ( $stack->[1] ? $stack->[1][3] . '()' : 'main()' );
-		my $file = __clean_file_for_log( $frame->[1] );
-		$stack_line = "$sub, $file line $frame->[2]";	
+	if (ref $stack ne 'ARRAY' or not @$stack) {
+		my $counter = 0;
+		while (my @frame = caller($counter)) {
+			push @$stack, \@frame;
+			$counter += 1;
+		}
 	}
+
+	my $frame = $stack->[0];
+	my $sub = ( $stack->[1] ? $stack->[1][3] . '()' : 'main()' );
+	my $file = __clean_file_for_log( $frame->[1] );
+	$stack_line = "$sub, $file line $frame->[2]";	
 	
 	require Stuffed::System::Utils;
 	my $ip = Stuffed::System::Utils::get_ip();
