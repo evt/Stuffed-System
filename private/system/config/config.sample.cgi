@@ -122,12 +122,6 @@ $config->{all_errors_file} = 'private/.ht_errors.all.log';
 $config->{use_404} = '0';
 $config->{error_404_URL} = '';
 
-# enable warnings logging, warnings are logged by explicitely calling ->warn from Error.pm in the code
-$config->{log_warnings} = '0';
-
-# save warnings in the errors log or in the db (ss_system_warnings)
-$config->{warnings_to_db} = '1';
-
 # log browser errors to a file, they are reported through the browser_error action
 $config->{log_browser_errors} = 1;
 

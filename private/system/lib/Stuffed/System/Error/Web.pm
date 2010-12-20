@@ -93,11 +93,11 @@ sub announce {
 sub throw {
 	my $self = shift;
 	my $in = {
-		message     => undef, # message text
-		msg_id      => undef, # i18n message id
-		msg_params  => undef, # i18n message params, ARRAY ref
-		fields      => undef, # ARRAY ref
-		__no_launch  => undef, # internal param, not for public use
+		message		=> undef, # message text
+		msg_id		=> undef, # i18n message id
+		msg_params	=> undef, # i18n message params, ARRAY ref
+		fields		=> undef, # ARRAY ref
+		__no_launch	=> undef, # internal param, not for public use
 		@_
 	  };
 
@@ -130,9 +130,6 @@ sub throw {
 
 	# saving error in the container before throwing
 	$self->{container}->__save_error($self);
-
-	#  $self->{container}->warn($system->dump($self, return => 1));
-	#  $self->{container}->warn($system->dump($system->in, return => 1));
 
 	if (not $in->{__no_launch}) {
 		my $sub = $self->{__sub} || 'default';

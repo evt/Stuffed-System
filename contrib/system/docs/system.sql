@@ -66,44 +66,6 @@ CREATE TABLE `system_users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-# Dump of table system_warnings
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `system_warnings`;
-
-CREATE TABLE `system_warnings` (
-  `warn_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `warn_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `system_id` varchar(20) DEFAULT NULL,
-  `vis_ip` varchar(15) NOT NULL DEFAULT '',
-  `warn_message` mediumtext NOT NULL,
-  `warn_extended` mediumtext,
-  `critical` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`warn_id`),
-  KEY `warn_date` (`warn_date`),
-  KEY `vis_ip` (`vis_ip`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table system_warnings_tags
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `system_warnings_tags`;
-
-CREATE TABLE `system_warnings_tags` (
-  `warn_id` int(11) unsigned NOT NULL DEFAULT '0',
-  `tag` varchar(20) NOT NULL DEFAULT '',
-  KEY `warn_id` (`warn_id`),
-  KEY `tag` (`tag`),
-  CONSTRAINT `system_warnings_tags_ibfk_1` FOREIGN KEY (`warn_id`) REFERENCES `system_warnings` (`warn_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-
-
-
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
