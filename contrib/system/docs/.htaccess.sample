@@ -17,9 +17,9 @@ AddHandler cgi-script .cgi .pl
 	
     # redirect all traffic from domain.com to www.domain.com
     # if Apache is behind a proxy such as Nginx, then the following command can be used
-    # instead of checking for HTTPS - "RewriteCond %{HTTP:Is-Nginx-SSL} 1", where
-    # "Is-Nginx-SSL" is a custom HTTP header set by the proxy when passing the SSL traffic
-    # to Apache
+    # instead of checking for HTTPS - "RewriteCond %{HTTP:X-Stuffed-System-SSL} 1", where
+    # "X-Stuffed-System-SSL" is a custom HTTP header that should be set by the proxy 
+    # when passing the SSL traffic to Apache
 	#RewriteCond %{HTTPS} on
 	#RewriteCond %{HTTP_HOST} ^(\w+\.\w+)$ [NC]
 	#RewriteRule ^(.*)$ https://www.%1/$1 [R=301,L]

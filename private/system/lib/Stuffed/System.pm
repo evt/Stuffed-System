@@ -97,7 +97,7 @@ sub run {
 	# default subroutine is called 'default' (surprise!)
 	$sub = 'default' if false($sub);
 
-	my $pkg = $self->pkg($pkg);
+	$pkg = $self->pkg($pkg);
 	
 	my %reserved_idx = map { s/^&//; $_ => 1 } grep { /^[^\$%@*]/ } @EXPORT;
 	if ($reserved_idx{$act}) {
@@ -176,6 +176,10 @@ sub __init {
 
 	# removing all restrictions from the access rights mask
 	umask 0000;
+	
+	# X-Stuffed-System-SSL is a custom HTTP header that could be used by a proxy server
+	# to tell Stuffed System that it is actually an SSL request, although it appears as a usual one
+	$ENV{HTTPS} = 1 if $ENV{HTTP_X_STUFFED_SYSTEM_SSL};
 
 	return $self;
 }
