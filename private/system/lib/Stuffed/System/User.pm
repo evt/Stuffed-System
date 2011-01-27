@@ -263,8 +263,9 @@ sub is_robot {
 		if ($ENV{HTTP_USER_AGENT}) {
 			$self->{is_robot} = $self->browser->robot || 0;
 
-			# HTTP::BrowserDetect thinks this is not a bot, we run a few of our own additional tests in this case
-			if (not $self->{is_robot}) {
+			# HTTP::BrowserDetect thinks this is not a bot, and it also didn't detect the browser engine,
+			# in this case we run a few of our own additional tests
+			if (not $self->{is_robot} and not $self->browser->engine_string) {
 				my $ua = lc( $ENV{HTTP_USER_AGENT} );
 				foreach my $string (@BOTS) {
 					if ( index( $ua, $string ) > -1 ) {
