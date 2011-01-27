@@ -30,6 +30,11 @@ use strict;
 use Stuffed::System;
 use Stuffed::System::Utils;
 
+# a list of bots ids that are NOT currently present in HTTP::BrowserDetect
+my @BOTS = (
+	'scoutjet', # http://www.scoutjet.com/
+);
+
 sub new {
 	my $class = shift;
 	my $self = bless({}, $class);
@@ -257,6 +262,17 @@ sub is_robot {
 	if (not exists $self->{is_robot}) {
 		if ($ENV{HTTP_USER_AGENT}) {
 			$self->{is_robot} = $self->browser->robot || 0;
+
+			# HTTP::BrowserDetect thinks this is not a bot, we run a few of our own additional tests in this case
+			if (not $self->{is_robot}) {
+				my $ua = lc( $ENV{HTTP_USER_AGENT} );
+				foreach my $string (@BOTS) {
+					if ( index( $ua, $string ) > -1 ) {
+						$self->{is_robot} = 1;
+						last;
+					}
+				}				
+			}
 		}
 		else {
 			$self->{is_robot} = 1;
