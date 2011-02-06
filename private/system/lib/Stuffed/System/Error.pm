@@ -204,7 +204,7 @@ sub die {
 
 # Method: log
 #
-# Is used to log an erorr message to the Stuffed System all errors log, if this type of 
+# Is used to log an error message to the Stuffed System all errors log, if this type of 
 # logging is turned on.
 
 sub log {
@@ -476,7 +476,7 @@ sub __just_die {
 	# ============================================================================
 
 	__log_error(
-		$database_info . $message . ( @add_message ? "\n" . join("\n", @add_message) : '' )
+		$database_info . $message . ( @add_message ? ($message !~ /\n$/ ? "\n" : '') . join("\n", @add_message) : '' )
 	);
 
 	return if $in->{kind_of};
