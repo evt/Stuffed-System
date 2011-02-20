@@ -272,6 +272,26 @@ sub session {
 	return $self->{session} = Stuffed::System::Session->new;
 }
 
+sub redis {
+    my $self = shift;
+    my $opt = {
+        async    => undef,
+        @_
+    };
+    my ($async) = @$opt{qw/async/};
+    
+    my $type = $async ? 'async' : 'sync';
+
+    require Stuffed::System::Redis;
+    eval { $self->{redis}{$type} ||= Stuffed::System::Redis->new(%$opt, type => $type) };
+    if ($@) {
+        require Stuffed::System::Redis::dummy;
+        $self->{redis}{$type} = Stuffed::System::Redis::dummy->new;
+    }
+
+    return $self->{redis}{$type};
+}
+
 sub path     {
 	my ($self, $type) = @_;
 	$type && $type eq 'pkg' ? $self->{__pkg_path} : $self->{__sys_path};

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # ============================================================================
 #
 #                        ___
@@ -69,6 +69,7 @@ $ENV{STUFFED_STACK_START} += 1 while caller($ENV{STUFFED_STACK_START} || 0);
 
 require Stuffed::System;
 my $system = Stuffed::System->new($sys_path, $pkg_path);
+
 $system->run->stop;	
 
 1;
