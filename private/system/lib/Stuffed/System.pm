@@ -138,7 +138,7 @@ sub stash {
 sub __get_pkg {
 	my $self = shift;
 	my $pkg_name = shift;
-	return (true($pkg_name) ? $self->{pkg_name} : undef);
+	return (true($pkg_name) ? $self->{__pkgs}{$pkg_name} : undef);
 }
 
 sub __save_pkg {
@@ -173,7 +173,7 @@ sub __init {
 
 	require Stuffed::System::File;
 	require Stuffed::System::Utils;
-
+	
 	# removing all restrictions from the access rights mask
 	umask 0000;
 	
