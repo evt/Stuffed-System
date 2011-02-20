@@ -129,5 +129,11 @@ $config->{log_browser_errors} = 1;
 $config->{browser_errors_file} = 'private/.ht_errors.browser.log';
 
 # ============================================================================
+# Redis configuration
+
+$config->{redis_host} = 'localhost';
+$config->{redis_port} = 6379;
+
+# ============================================================================
 
 1;
