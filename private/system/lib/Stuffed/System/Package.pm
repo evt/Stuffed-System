@@ -33,10 +33,11 @@ use Stuffed::System;
 sub __new {
 	my $class = shift;
 	my $in = {
-		name  => undef,
+		name				=> undef,
+		no_missing_error	=> undef, # return undef if package can't be found instead of calling __missing_error
 		@_
 	  };
-	my $name = $in->{name};
+	my ( $name, $no_missing_error ) = @$in{qw( name no_missing_error )};
 
 	# dot is an alternative separator for sub packages
 	$name =~ s/\./:/g;
@@ -83,7 +84,9 @@ CODE
 	# then using the globally defined packages path
 	if (not -d $path) {
 		$path = $system->path('pkg') . "/private/$pkg_path";
-		$self->__missing_error if not -d $path;
+		if (not -d $path) {
+			$no_missing_error ? return undef : $self->__missing_error;	
+		}
 	}
 
 	# system package lib is already in @INC
@@ -115,14 +118,14 @@ CODE
 
 	$self->__init;
 
-	# removing init marker for this package
-	$system->stash('__system_pkg_init'.$name => undef);
-
 	# saving package in the the Stuffed System packages container
 	$system->__save_pkg($self);
 
 	# processing 'start' event for the package
 	$self->__event('start')->process(pkg => $self);
+
+	# removing init marker for this package
+	$system->stash('__system_pkg_init'.$name => undef);
 
 	return $self;
 }

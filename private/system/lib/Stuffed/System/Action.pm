@@ -33,22 +33,20 @@ use Digest::MD5;
 sub __new {
 	my $class = shift;
 	my $in = {
-		pkg   => undef,
-		name  => undef,
+		pkg					=> undef,
+		name				=> undef,
+		is_sub_pkg_check	=> undef,
 		@_
 	};
-
-	my $pkg = $in->{pkg};
-	my $name = $in->{name};
+	my ( $pkg, $name, $is_sub_pkg_check ) = @$in{qw( pkg name is_sub_pkg_check )};
 	return undef if not $pkg or false($name);
 
 	my $pkg_class = ref $pkg;
-	my $pkg_path = $pkg->__path;
-	my $action_file_path = "$pkg_path/$name.cgi"; 
+	my $action_file_path = $pkg->__path . "/$name.cgi"; 
 
 	# "b" is just a prefix which doesn't mean anything, we need the first character to be a letter in the package name
-	my $base_class = $pkg_class.'::b'.Digest::MD5::md5_hex($action_file_path);
-	my $action_class = $base_class.'::action';
+	my $base_class = $pkg_class . '::b' . Digest::MD5::md5_hex($action_file_path);
+	my $action_class = $base_class . '::action';
 
 	my $already_compiled = undef;
 	{
@@ -65,18 +63,42 @@ sub __new {
 	
 		# action file doesn't exist, checking if any of the "public" templates exist for the action
 		else {
-			my $has_templates = undef;
+			my $is_missing = 1;
 	
 			opendir(DIR, $pkg->__skin->path);
 			while (my $file = readdir(DIR)) {
 				if ($file =~ /^\Q$name\E\./) {
-					$has_templates = 1;
+					undef $is_missing;
 					last;
 				}
 			}
 			closedir(DIR);
-	
-			$pkg->__missing_error(action_name => $name) if not $has_templates;
+			
+			# action and public template for it were not found, we will additionally check now
+			# that we don't have a sub package with the name like the specified action, but will 
+			# only do this if this is not already such check
+			if ( $is_missing and not $is_sub_pkg_check ) {
+				require Stuffed::System::Package;
+				my $sub_pkg = Stuffed::System::Package->__new(
+					name				=> $pkg->__name . ':' . $name,
+					no_missing_error	=> 1,
+				);
+
+				# we do have such sub package, checking action now
+				if ($sub_pkg) {
+					my $act = Stuffed::System::Action->__new(
+						pkg					=> $sub_pkg,
+						name				=> 'index',
+						is_sub_pkg_check	=> 1,
+					);
+					# and we have index action in this package, launch its default sub now
+					$act->default if $act;
+				}
+			}
+			
+			if ( $is_missing ) {
+				$is_sub_pkg_check ? return undef : $pkg->__missing_error(action_name => $name);	
+			}
 		}
 
 		eval <<CODE;
@@ -104,7 +126,6 @@ CODE
 
 	return $self;
 }
-
 
 sub __template {
 	my $self = shift;
