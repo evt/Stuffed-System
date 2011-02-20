@@ -196,7 +196,7 @@ sub new {
 
 				my $code = $self->__finalize_compiled($self->compile);
 
-				my $f = Stuffed::System::File->new($cgifile, 'w', {is_text => 1}) || die "Can't write compiled template '$cgifile'. $!";
+				$f = Stuffed::System::File->new($cgifile, 'w', {is_text => 1}) || die "Can't write compiled template '$cgifile'. $!";
 				$f->print($code)->close;
 
 				no strict 'vars';
@@ -248,7 +248,7 @@ CODE
 	}
 
 	my $time = localtime();
-	my $code = <<CODE;
+	$code = <<CODE;
 # Generated: $time
 #
 # This is a compiled version of a Stuffed Template. Don't make modifications

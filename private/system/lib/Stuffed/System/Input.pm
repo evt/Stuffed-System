@@ -175,12 +175,12 @@ sub __get_query {
 	}
 
 	# multi-part formdata
-	if ($ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_TYPE} =~ /^multipart\/form-data/) {
+	if ($ENV{REQUEST_METHOD} and $ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_TYPE} =~ /^multipart\/form-data/) {
 		$self->__parse_multipart;
 	}
 
 	# form submitted with post
-	if ($ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_LENGTH}) {
+	if ($ENV{REQUEST_METHOD} and $ENV{REQUEST_METHOD} eq 'POST' and $ENV{CONTENT_LENGTH}) {
 		binmode STDIN;
 		read(STDIN, $self->{__stdin}, $ENV{CONTENT_LENGTH});
 		my ($result, $order) = $self->__parse_query($self->{__stdin});

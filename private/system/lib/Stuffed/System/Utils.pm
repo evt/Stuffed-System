@@ -73,10 +73,10 @@ sub get_ip {
 	if ( $ENV{HTTP_X_FORWARDED_FOR} ) {
 		($ip) = split( /\s*,\s*/, $ENV{HTTP_X_FORWARDED_FOR} );
 	}
-	if ( $ip !~ /^\d+\.\d+\.\d+\.\d+$/ ) {
+	if ( not $ip or $ip !~ /^\d+\.\d+\.\d+\.\d+$/ ) {
 		$ip = $ENV{REMOTE_ADDR};
 	}
-	if ( $ip !~ /^\d+\.\d+\.\d+\.\d+$/ ) {
+	if ( not $ip or $ip !~ /^\d+\.\d+\.\d+\.\d+$/ ) {
 		$ip = '0.0.0.0';
 	}
 	return $ip;
