@@ -196,26 +196,38 @@ sub __dispatch {
 	return if false($path);
 	
 	# standard system 4 dispatch routes --
+	# /__pkg/, /__pkg/action/, /__pkg/action/sub.html
 	# /subpkg/, /subpkg/action/, /subpkg/action/sub.html (main package is taken from default_pkg in system config)
 	# /action/, /action/sub.html 
-	# /system/, /system/action/, /system/action/sub.html
 	
-	if ($path =~ m|^system/?([^/]+)?/?(?:([^/]+)?\.html)?$|) {
+	if ($path =~ m|^([^/]+)/?(?:([^/]+)?\.html)?$|) {
 		my ($act, $sub) = ($1, $2);
-		$q->__pkg('system');
-		$q->__act($act) if true($act);
-		$q->__sub($sub) if true($sub);
-	}
-
-	elsif ($path =~ m|^([^/]+)/?(?:([^/]+)?\.html)?$|) {
-		my ($act, $sub) = ($1, $2);
-		$q->__act($act);
-		$q->__sub($sub) if true($sub);		
+		
+		# this is not an action, this is a top level package
+		if ($act =~ /^_/) {
+			$act =~ s/^_+([^_])/$1/;
+			$q->__pkg( $act );
+			$q->__act( $sub ) if true $sub;
+		}
+		
+		else {
+			$q->__act($act);
+			$q->__sub($sub) if true $sub;		
+		}
 	}
 	
 	elsif ($path =~ m|^([^/]+)/([^/]+)/?(?:([^/]+)?\.html)?$|) {
 		my ($pkg, $act, $sub) = ($1, $2, $3);
-		$q->__pkg(':'.$pkg);
+		
+		# this is a top level package
+		if ( $pkg =~ /^_/ ) {
+			$pkg =~ s/^_+([^_])/$1/;
+			$q->__pkg($pkg);						
+		}
+		else {
+			$q->__pkg(':'.$pkg);
+		}
+		
 		$q->__act($act);
 		$q->__sub($sub) if true($sub);		
 	}
