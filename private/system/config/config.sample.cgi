@@ -135,5 +135,11 @@ $config->{redis_host} = 'localhost';
 $config->{redis_port} = 6379;
 
 # ============================================================================
+# Sphinx configuration
+
+$config->{sphinx_host} = 'localhost';
+$config->{sphinx_port} = 9312;
+
+# ============================================================================
 
 1;

@@ -292,6 +292,21 @@ sub redis {
     return $self->{redis}{$type};
 }
 
+sub sphinx {
+    my $self = shift;
+    
+    my $host = $self->config->get('sphinx_host');
+    my $port = $self->config->get('sphinx_port');
+    return if not $host or not $port;
+    
+    require Sphinx::Search;
+    my $sphinx = Sphinx::Search->new(@_);
+    
+    $sphinx->SetServer($self->config->get('sphinx_host'), $self->config->get('sphinx_port'));
+    
+    return $sphinx;
+}
+
 sub path     {
 	my ($self, $type) = @_;
 	$type && $type eq 'pkg' ? $self->{__pkg_path} : $self->{__sys_path};
