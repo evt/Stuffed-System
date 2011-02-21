@@ -1,0 +1,15 @@
+Options ExecCGI Includes FollowSymLinks
+DirectoryIndex index.cgi
+
+# standard cgi
+AddHandler cgi-script .cgi .pl
+
+# mod_perl 1.0
+#AddHandler perl-script .cgi .pl .pm
+#PerlHandler Apache::Registry
+
+# mod_perl 2.0
+#AddHandler perl-script .cgi .pl .pm
+#PerlHandler ModPerl::Registry
+
+
